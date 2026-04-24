@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Executive Dashboard | FH vs GAZI</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- Tailwind CSS for styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Tailwind Config -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'] },
+        colors: {
+          fh: '#3B82F6', // Blue
+          gazi: '#F59E0B', // Amber
+          dark: '#0F172A', // Slate 900
+          card: '#FFFFFF',
+          bg: '#F8FAFC'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { background-color: theme('colors.bg'); color: theme('colors.dark'); -webkit-font-smoothing: antialiased; }
+  /* Hide scrollbar for clean horizontal scrolls if needed */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  canvas { max-height: 100% !important; }
+</style>
+</head>
+<body class="pb-20">
+
+<!-- Top Navigation & Alert Banner -->
+<div class="sticky top-0 z-50 bg-bg/90 backdrop-blur-md border-b border-gray-200">
+  <!-- Dynamic Alert Banner (Injected by JS) -->
+  <div id="urgentBanner" class="hidden w-full px-2 py-1.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold text-center text-white tracking-wide"></div>
+  
+  <div class="max-w-5xl mx-auto px-3 py-2 sm:px-4 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+    <div>
+      <h1 class="text-base sm:text-xl font-extrabold tracking-tight text-dark leading-none">Business Overview</h1>
+      <p class="hidden sm:block text-xs font-medium text-gray-500 uppercase tracking-widest mt-0.5">20-Q Expert Dashboard</p>
+    </div>
+    
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div id="winnerChip" class="px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-sm font-bold shadow-sm border whitespace-nowrap"></div>
+      
+      <!-- Actions Dropdown / Buttons -->
+      <div class="flex gap-1 sm:gap-2">
+        <button id="downloadBrief" class="bg-dark text-white p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition shadow-sm flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-semibold px-2 sm:px-4">
+          <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span class="hidden sm:inline">Brief</span>
+        </button>
+        <button id="downloadCSV" class="bg-white text-gray-700 border border-gray-200 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition shadow-sm text-xs sm:text-sm font-semibold px-2 sm:px-4">
+          CSV
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 mt-6">
+  
+  <!-- Section Title -->
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold text-dark">Key Performance Indicators</h2>
+    <span class="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-md">Last 12 Months</span>
+  </div>
+
+  <!-- KPIs Grid (2x2 on Mobile, 4x1 on Desktop) -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 mb-8">
+    <!-- Total Revenue -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="text-xs font-semibold text-gray-500 mb-1">Total Revenue</div>
+      <div class="text-xl lg:text-2xl font-extrabold tracking-tight" id="kTotal">—</div>
+      <div class="text-xs text-gray-400 mt-2 font-medium">Combined 12m</div>
+    </div>
+    <!-- YoY Change -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="text-xs font-semibold text-gray-500 mb-1">YoY Growth</div>
+      <div class="text-xl lg:text-2xl font-extrabold tracking-tight flex items-center gap-1" id="kYoYBox">
+        <span id="kYoY">—</span>
+      </div>
+      <div class="text-xs text-gray-400 mt-2 font-medium">Vs. Last Year</div>
+    </div>
+    <!-- Peak Month -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="text-xs font-semibold text-gray-500 mb-1">Peak Month</div>
+      <div class="text-xl lg:text-2xl font-extrabold tracking-tight text-fh" id="kPeakMonth">—</div>
+      <div class="text-xs text-gray-400 mt-2 font-medium truncate" id="kPeakValue">—</div>
+    </div>
+    <!-- Dominance -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+      <div class="text-xs font-semibold text-gray-500 mb-1">Brand Shift</div>
+      <div class="text-xl lg:text-2xl font-extrabold tracking-tight" id="kDom">—</div>
+      <div class="text-xs text-gray-400 mt-2 font-medium">Advantage in market</div>
+    </div>
+  </div>
+
+  <!-- Deep Dive Title -->
+  <div class="mb-4 mt-10">
+    <h2 class="text-lg font-bold text-dark">Strategic Insights (20 Qs)</h2>
+    <p class="text-sm text-gray-500">Instant answers for operational decisions.</p>
+  </div>
+
+  <!-- QUESTIONS GRID (1 col mobile, 2 col tablet, 3 col desktop) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6" id="questionsGrid">
+    <!-- Cards dynamically injected here -->
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-12 text-center pb-8 border-t border-gray-200 pt-8">
+    <div class="inline-flex items-center justify-center w-12 h-12 bg-gray-900 rounded-xl mb-4 text-white shadow-lg">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+    </div>
+    <h3 class="text-dark font-bold text-lg">Designed for Executive Clarity</h3>
+    <p class="text-sm text-gray-500 mt-2 max-w-md mx-auto">All critical business variables computed and visualized instantly to support data-driven decision making.</p>
+  </div>
+
+</div>
+
+<script>
+/* -----------------------------
+   DATA - exact rupee arrays
+   ----------------------------- */
+const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
+
+const fh_now = [6486531,3722458,2583308,2675795,3874282,5191119,5418107,7583388,9397670,12947155,13900056,4852340];
+const gazi_now = [2742824,2865880,1169190,1697677,1756650,2091850,2550450,5019912,7158025,9607400,12716015,5612095];
+
+const fh_old = [4107122,3205217,2228010,1978375,2454550,2559240,4873663,5092234,6439617,8495654,14238012,9701867];
+const gazi_old = [1561525,1490445,998345,1299420,907635,1636395,1337040,1478050,3136360,4131873,8621815,4990105];
+
+const brandColors = { fh: '#3B82F6', gazi: '#F59E0B', bad: '#EF4444', good: '#10B981', oldFH: '#93C5FD', oldGazi: '#FCD34D' };
+
+function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+function fmt(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+function cr(n){ return '₹' + (n/10000000).toFixed(2) + ' Cr'; }
+
+/* -----------------------------
+   Derived metrics
+   ----------------------------- */
+const total_now = fh_now.map((v,i)=> v + gazi_now[i]);
+const total_old = fh_old.map((v,i)=> v + gazi_old[i]);
+
+const totalSum = sum(total_now);
+const totalSumOld = sum(total_old);
+const yoyOverall = Math.round((totalSum - totalSumOld)/totalSumOld*100);
+
+const fhSum = sum(fh_now), gaziSum = sum(gazi_now);
+const yoyMonths = total_now.map((v,i)=> Math.round((v - total_old[i]) / total_old[i] * 100));
+const momPct = total_now.map((v,i)=> i===0?0: Math.round((v - total_now[i-1]) / total_now[i-1] * 100));
+
+const fhSharePct = fh_now.map((v,i)=> Math.round( v/(v+gazi_now[i]) * 100 ));
+const gaziSharePct = fhSharePct.map(v=> 100 - v);
+
+const volatility = (()=>{
+  const arr = momPct.slice(1).map(Math.abs);
+  return (sum(arr)/arr.length).toFixed(1);
+})();
+const dominance = Math.round((gaziSharePct[11] - fhSharePct[11]));
+
+// EXACT YOY CALCULATIONS FOR EXPERT VIEW
+const fhSumOld = sum(fh_old);
+const gaziSumOld = sum(gazi_old);
+const fhYoyTotal = Math.round((fhSum - fhSumOld) / fhSumOld * 100);
+const gaziYoyTotal = Math.round((gaziSum - gaziSumOld) / gaziSumOld * 100);
+
+const fhPctNow = Math.round(fhSum / totalSum * 100);
+const gzPctNow = Math.round(gaziSum / totalSum * 100);
+const fhPctOld = Math.round(fhSumOld / totalSumOld * 100);
+const gzPctOld = Math.round(gaziSumOld / totalSumOld * 100);
+
+/* -----------------------------
+   Populate hero & KPIs
+   ----------------------------- */
+const isGaziWinning = gazi_now[11] > fh_now[11];
+const wChip = document.getElementById('winnerChip');
+wChip.innerHTML = isGaziWinning 
+  ? `<span class="text-gazi mr-1">🔥</span> GAZI Leading` 
+  : `<span class="text-fh mr-1">🔵</span> FH Leading`;
+wChip.className += isGaziWinning ? " bg-orange-50 text-orange-800 border-orange-200" : " bg-blue-50 text-blue-800 border-blue-200";
+
+document.getElementById('kTotal').innerText = fmt(totalSum);
+document.getElementById('kTotal').nextElementSibling.innerText = `Combined 12m (${cr(totalSum)})`;
+
+const yoyBox = document.getElementById('kYoYBox');
+const yoyVal = document.getElementById('kYoY');
+yoyVal.innerText = (yoyOverall>=0? '+'+yoyOverall+'%': yoyOverall+'%');
+if(yoyOverall >= 0) {
+  yoyVal.classList.add('text-good');
+  yoyBox.innerHTML += `<svg class="w-5 h-5 text-good" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>`;
+} else {
+  yoyVal.classList.add('text-bad');
+  yoyBox.innerHTML += `<svg class="w-5 h-5 text-bad" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>`;
+}
+
+const peakIndex = total_now.indexOf(Math.max(...total_now));
+document.getElementById('kPeakMonth').innerText = months[peakIndex];
+document.getElementById('kPeakValue').innerText = fmt(Math.max(...total_now));
+
+const domElem = document.getElementById('kDom');
+if(dominance > 0) {
+  domElem.innerText = `GAZI +${dominance}%`;
+  domElem.classList.add('text-gazi');
+} else {
+  domElem.innerText = `FH ${Math.abs(dominance)}%`;
+  domElem.classList.add('text-fh');
+}
+
+// Banner Logic
+const banner = document.getElementById('urgentBanner');
+const marchIndex = 11;
+const marchYoY = Math.round((total_now[marchIndex] - total_old[marchIndex]) / total_old[marchIndex] * 100);
+if(marchYoY <= -25){
+  banner.classList.remove('hidden');
+  banner.classList.add('bg-bad', 'animate-pulse');
+  banner.innerHTML = `⚠️ CRITICAL: MARCH REVENUE DROPPED ${marchYoY}% YoY — INVESTIGATE IMMEDIATELY`;
+} else if(marchYoY < 0){
+  banner.classList.remove('hidden');
+  banner.classList.add('bg-gazi');
+  banner.innerHTML = `Attention: March YoY is down ${marchYoY}%`;
+}
+
+/* -----------------------------
+   Expert Chart Builder
+   Takes raw data, makes it look "Apple/Stripe" quality
+   ----------------------------- */
+function buildExpertChart(config) {
+  // Global defaults for clean UI
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = '#94A3B8';
+  
+  const mergedOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: config.type === 'doughnut' }, // Hide legends except doughnut
+      tooltip: {
+        backgroundColor: '#0F172A', titleFont: { size: 13 }, bodyFont: { size: 14, weight: 'bold' },
+        padding: 10, cornerRadius: 8, displayColors: true,
+        callbacks: {
+          label: function(ctx) {
+            let val = ctx.raw;
+            if(typeof val === 'number' && val >= 1000000) { return ctx.dataset.label + ': ' + cr(val); }
+            if(typeof val === 'number' && val > 1000) { return ctx.dataset.label + ': ' + fmt(val); }
+            return ctx.dataset.label + ': ' + val;
+          }
+        }
+      }
+    },
+    scales: config.type === 'doughnut' || config.type === 'pie' ? {} : {
+      x: { grid: { display: false, drawBorder: false }, ticks: { maxRotation: 0, font: {size: 10} } },
+      y: { display: false, min: config.minY !== undefined ? config.minY : undefined } // Hide Y axis for sparkline effect
+    },
+    interaction: { mode: 'index', intersect: false },
+    ...config.options
+  };
+
+  // Enhance Datasets
+  const enhancedDatasets = config.data.datasets.map(ds => {
+    let base = { ...ds };
+    if (config.type === 'bar') {
+      base.borderRadius = 6;
+      base.borderSkipped = false;
+    }
+    if (config.type === 'line') {
+      base.borderWidth = 3;
+      base.pointRadius = 0;
+      base.pointHoverRadius = 6;
+      base.tension = 0.4; // Smooth curves
+    }
+    if (config.type === 'doughnut' || config.type === 'pie') {
+      base.borderWidth = 0;
+      base.hoverOffset = 4;
+    }
+    return base;
+  });
+
+  return { type: config.type, data: { labels: config.data.labels, datasets: enhancedDatasets }, options: mergedOptions };
+}
+
+/* -----------------------------
+   Questions & Chart Specs
+   ----------------------------- */
+const cards = [
+  { q: "Mera total business (12m)?", ans: `${fmt(totalSum)} <div class="text-sm font-medium text-gray-500 mt-1">(${cr(totalSum)})</div>`, color: 'text-dark', why:"Business size & budgeting base.", action:"Set monthly target = avg * 1.05",
+    chart: { type:'doughnut', options:{cutout:'70%', plugins:{legend:{position:'right'}}}, data:{ labels:['FH','GAZI'], datasets:[{data:[fhSum,gaziSum], backgroundColor:[brandColors.fh, brandColors.gazi]}] } }
+  },
+  { q: "Kya growth ho rahi hai (YoY)?", ans: `${yoyOverall>=0? '+'+yoyOverall+'%': yoyOverall+'%'}`, color: yoyOverall>=0 ? 'text-good' : 'text-bad', why:"Overall company health metric.", action:"If negative, trigger cost audits.",
+    chart: { type:'bar', data:{ labels:months, datasets:[{label:'This Yr', data: total_now, backgroundColor:brandColors.dark},{label:'Last Yr', data: total_old, backgroundColor:'#E2E8F0'}] } }
+  },
+  { q: "Kaun jeet raha hai (last month)?", ans: (gazi_now[11]>fh_now[11]? 'GAZI':'FH'), color: gazi_now[11]>fh_now[11] ? 'text-gazi' : 'text-fh', why:`FH: ${fmt(fh_now[11])} | GZ: ${fmt(gazi_now[11])}`, action:"Increase leader's digital spend.",
+    chart: { type:'bar', data:{ labels:['FH (Mar)','GAZI (Mar)'], datasets:[{data:[fh_now[11], gazi_now[11]], backgroundColor:[brandColors.fh, brandColors.gazi]}] } }
+  },
+  { q: "Top month of the year?", ans: `${months[peakIndex]}`, color: 'text-good', why:`Peak Revenue: ${fmt(Math.max(...total_now))}`, action:"Front-load inventory 30 days prior.",
+    chart: { type:'bar', data:{ labels:months, datasets:[{data: total_now, backgroundColor: total_now.map((v,i)=> i===peakIndex? brandColors.good : '#CBD5E1')}] } }
+  },
+  { q: "Weakest month (Risk)?", ans: `${months[2]}`, color: 'text-bad', why:`Lowest Revenue: ${cr(Math.min(...total_now))}`, action:"Minimize operational expenses here.",
+    chart: { type:'line', data:{ labels:months, datasets:[{data: total_now, borderColor:brandColors.bad, backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,100);g.addColorStop(0,'#fecaca');g.addColorStop(1,'#ffffff00');return g;}, fill:true}] } }
+  },
+  { q: "GAZI this year vs last year?", ans: `${gaziYoyTotal > 0 ? '+' : ''}${gaziYoyTotal}% Growth`, color: gaziYoyTotal > 0 ? 'text-good' : 'text-bad', why:`This Yr: ${cr(gaziSum)} | Last Yr: ${cr(gaziSumOld)}`, action:"Push GAZI heroes in slow zones.",
+    chart: { type:'line', data:{ labels:months, datasets:[{label:'This Yr', data:gazi_now, borderColor:brandColors.gazi},{label:'Last Yr', data:gazi_old, borderColor:brandColors.oldGazi, borderDash:[5,5]}] } }
+  },
+  { q: "FH this year vs last year?", ans: `${fhYoyTotal > 0 ? '+' : ''}${fhYoyTotal}% Growth`, color: fhYoyTotal > 0 ? 'text-good' : 'text-bad', why:`This Yr: ${cr(fhSum)} | Last Yr: ${cr(fhSumOld)}`, action:"Analyze price points if dropping.",
+    chart: { type:'line', data:{ labels:months, datasets:[{label:'This Yr', data:fh_now, borderColor:brandColors.fh},{label:'Last Yr', data:fh_old, borderColor:brandColors.oldFH, borderDash:[5,5]}] } }
+  },
+  { q: "GAZI YoY growth (Feb)?", ans: `${Math.round((gazi_now[10]-gazi_old[10])/gazi_old[10]*100)}%`, color: 'text-gazi', why:`Feb Yr: ${cr(gazi_now[10])} | Last Yr: ${cr(gazi_old[10])}`, action:"Ensure GAZI Feb inventory aligns.",
+    chart: { type:'bar', data:{ labels:['Last Feb','This Feb'], datasets:[{data:[gazi_old[10], gazi_now[10]], backgroundColor:[brandColors.oldGazi, brandColors.gazi]}] } }
+  },
+  { q: "FH YoY growth (Feb)?", ans: `${Math.round((fh_now[10]-fh_old[10])/fh_old[10]*100)}%`, color: 'text-fh', why:`Feb Yr: ${cr(fh_now[10])} | Last Yr: ${cr(fh_old[10])}`, action:"Check FH margins for Feb volume.",
+    chart: { type:'bar', data:{ labels:['Last Feb','This Feb'], datasets:[{data:[fh_old[10], fh_now[10]], backgroundColor:[brandColors.oldFH, brandColors.fh]}] } }
+  },
+  { q: "March YoY emergency check?", ans: `${marchYoY}%`, color: marchYoY<0 ? 'text-bad' : 'text-good', why:`This Mar: ${cr(total_now[marchIndex])}`, action: marchYoY<0 ? "Launch 72hr fulfillment audit!" : "Maintain current strategy.",
+    chart: { type:'bar', data:{ labels:['Last Mar','This Mar'], datasets:[{data:[total_old[marchIndex], total_now[marchIndex]], backgroundColor:['#E2E8F0', marchYoY<0 ? brandColors.bad : brandColors.good]}] } }
+  },
+  { q: "Monthly Market Share Trend?", ans: `Mar: FH ${fhSharePct[11]}% | GZ ${gaziSharePct[11]}%`, color: 'text-dark', why:"Shows if one brand is taking over month-by-month.", action:"Watch the lines crossing to detect cannibalization.",
+    chart: { type:'line', minY:0, options: { scales: { y: { display: true, max: 100, min: 0, ticks: { font: {size: 10} } } } }, data:{ labels:months, datasets:[{label:'FH %', data: fhSharePct, borderColor:brandColors.fh},{label:'GAZI %', data: gaziSharePct, borderColor:brandColors.gazi}] } }
+  },
+  { q: "Revenue Volatility?", ans: `${volatility}%`, color: 'text-dark', why:"Supply chain stress level.", action:"Flatten promos to stabilize demand.",
+    chart: { type:'bar', data:{ labels:months, datasets:[{data:momPct, backgroundColor:momPct.map(v=> v<0? brandColors.bad : brandColors.good)}] } }
+  },
+  { q: "Pareto: Top 3 Months?", ans: `Feb, Jan, Dec`, color: 'text-dark', why:"Identifies where 60%+ revenue lies.", action:"Lock ad budgets for these 90 days.",
+    chart: { type:'bar', data:{ labels: ['Feb','Jan','Dec','Mar','Oct','Sep'], datasets:[{data: [total_now[10],total_now[9],total_now[8],total_now[11],total_now[6],total_now[5]], backgroundColor:brandColors.dark}] } }
+  },
+  { q: "Revenue Shift (This Yr vs Last Yr)?", ans: `GZ: ${gzPctOld}% ➔ ${gzPctNow}% | FH: ${fhPctOld}% ➔ ${fhPctNow}% <div class="text-[11px] sm:text-xs text-gray-500 font-semibold mt-1.5 leading-snug">This Yr: FH ${cr(fhSum)} | GZ ${cr(gaziSum)}<br>Last Yr: FH ${cr(fhSumOld)} | GZ ${cr(gaziSumOld)}</div>`, color: 'text-dark', why:`Total Size: ${cr(totalSumOld)} (Last Yr) vs ${cr(totalSum)} (This Yr)`, action:"Align headcount to the new revenue split.",
+    chart: { type:'bar', options:{ indexAxis: 'y', scales: { x: { stacked: true, display: false }, y: { stacked: true, display: true, grid: { display: false }, border: {display: false}, ticks: { font: { weight: 'bold' } } } }, plugins: { legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } } }, data:{ labels:['This Yr', 'Last Yr'], datasets:[ {label:'FH', data:[fhSum, fhSumOld], backgroundColor:brandColors.fh, barPercentage: 0.6}, {label:'GAZI', data:[gaziSum, gaziSumOld], backgroundColor:brandColors.gazi, barPercentage: 0.6} ]} }
+  },
+  { q: "Is GAZI cannibalizing FH?", ans: (dominance>8? 'High Risk':'Stable'), color: dominance>8 ? 'text-bad' : 'text-good', why:"Are we stealing our own sales?", action:"Differentiate targeting demographics.",
+    chart: { type:'line', data:{ labels:months, datasets:[{label:'FH', data:fh_now, borderColor:brandColors.fh},{label:'GAZI', data:gazi_now, borderColor:brandColors.gazi}] } }
+  },
+  { q: "24-Hour Checklist?", ans: "Triage Plan", color: 'text-dark', why:"Immediate execution steps for staff.", action:"1. GAZI Stock\n2. Pause Discounts\n3. March Audit",
+    chart: { type:'bar', options:{indexAxis: 'y'}, data:{ labels:['Stock','Promo','Audit'], datasets:[{data:[90,40,100], backgroundColor:[brandColors.gazi, brandColors.bad, brandColors.dark]}] } }
+  },
+  { q: "CEO Summary", ans: `${(yoyOverall>=0? 'Growing':'Declining')}`, color: yoyOverall>=0 ? 'text-good' : 'text-bad', why:"The 5-second elevator pitch.", action:`Share: GAZI ${(dominance>0? 'Leading':'Following')}, Mar change ${marchYoY}%`,
+    chart: { type:'line', data:{ labels:months, datasets:[{data:total_now, borderColor:brandColors.dark, backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,100);g.addColorStop(0,'#0F172A40');g.addColorStop(1,'#0F172A00');return g;}, fill:true}] } }
+  }
+];
+
+/* -----------------------------
+   Render Engine
+   ----------------------------- */
+const grid = document.getElementById('questionsGrid');
+
+cards.forEach((c, i) => {
+  const cid = 'chart_canvas_'+i;
+  // Use explicit coloring defined in the object, fallback to dark
+  let ansColor = c.color || 'text-dark';
+
+  const cardHTML = `
+    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow duration-300">
+      <div class="flex-grow">
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest leading-relaxed">${c.q}</h3>
+        <div class="text-2xl font-black mt-1 ${ansColor} tracking-tight">${c.ans}</div>
+        
+        <div class="h-24 w-full relative mt-4 mb-2">
+          <canvas id="${cid}"></canvas>
+        </div>
+      </div>
+      
+      <div class="bg-gray-50 rounded-2xl p-4 mt-4 border border-gray-100">
+        <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Why it matters
+        </div>
+        <div class="text-sm font-medium text-gray-700 leading-snug mb-3">${c.why}</div>
+        
+        <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+           <svg class="w-3 h-3 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+           Action Required
+        </div>
+        <div class="text-sm font-bold text-dark leading-snug whitespace-pre-line">${c.action}</div>
+      </div>
+    </div>
+  `;
+  
+  const div = document.createElement('div');
+  div.innerHTML = cardHTML;
+  grid.appendChild(div.firstElementChild);
+  
+  // Render chart async to not block UI thread
+  setTimeout(()=> {
+    const ctx = document.getElementById(cid).getContext('2d');
+    new Chart(ctx, buildExpertChart(c.chart));
+  }, 100 + (i*20)); // staggered load for smooth rendering
+});
+
+/* -----------------------------
+   Actions
+   ----------------------------- */
+document.getElementById('downloadBrief').addEventListener('click', ()=> {
+  let msg = `EXECUTIVE BRIEF\nGenerated: ${new Date().toLocaleDateString()}\n\n`;
+  msg += `Total Revenue: ${cr(totalSum)}\nYoY Growth: ${yoyOverall}%\nMarket Leader: ${(gazi_now[11]>fh_now[11]?'GAZI':'FH')}\n\n`;
+  if(marchYoY <= -25) msg += `URGENT ALERT: March dropped ${marchYoY}% YoY.\n\n`;
+  msg += `IMMEDIATE ACTIONS:\n- ${cards[18].action.replace(/\n/g, '\n- ')}\n`;
+  
+  const blob = new Blob([msg], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Executive_Brief.txt'; a.click();
+});
+
+document.getElementById('downloadCSV').addEventListener('click', ()=>{
+  const rows = [['Month','FH_This_Yr','GAZI_This_Yr','Total_This_Yr','FH_Last_Yr','GAZI_Last_Yr','Total_Last_Yr']];
+  for(let i=0;i<months.length;i++) rows.push([months[i], fh_now[i], gazi_now[i], total_now[i], fh_old[i], gazi_old[i], total_old[i]]);
+  const csv = rows.map(r=> r.join(',') ).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = 'Dashboard_Data.csv'; a.click();
+});
+</script>
+</body>
+</html>

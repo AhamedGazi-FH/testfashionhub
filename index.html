@@ -7,197 +7,211 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <!-- ADD THIS LINE: Expert Cryptography Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     
     <style>
         /* Mobile-Optimized Aesthetic */
         body { 
-            background-color: #fafafa; 
+            background-color: #f4f4f5; 
             font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             color: #18181b;
-            -webkit-tap-highlight-color: transparent; /* Removes ugly blue tap highlight on mobile */
+            -webkit-tap-highlight-color: transparent;
         }
         
-        .bento-card {
-            background: #ffffff;
-            border: 1px solid #e4e4e7;
-            border-radius: 1.25rem; /* Slightly softer for mobile */
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-            position: relative;
+        /* The App Icon Box (Squircle) */
+        .app-icon-box {
+            border-radius: 22%; /* The exact iOS Squircle ratio */
+            box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), filter 0.15s;
         }
         
-        /* Subtle press effect for mobile instead of hover */
-        .bento-card:active {
-            transform: scale(0.98);
-            background-color: #fafafa;
+        .app-icon-wrapper:active .app-icon-box {
+            transform: scale(0.9);
+            filter: brightness(0.9);
+        }
+
+        /* Glassmorphism Dock */
+        .glass-dock {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
 
         /* Drag & Drop Mobile Physics */
-        .sortable-ghost { opacity: 0.3; transform: scale(0.95); }
-        .sortable-drag {
+        .sortable-ghost .app-icon-box { opacity: 0.3; transform: scale(0.9); border: 2px dashed #a1a1aa; background: transparent !important; }
+        .sortable-drag .app-icon-box {
             cursor: grabbing !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-            transform: scale(1.05) !important;
-            background: white !important;
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.3) !important;
+            transform: scale(1.15) !important;
             z-index: 50;
         }
         
-        .admin-mode-active .grid-wrapper {
+        /* iOS Jiggle Animation for Edit Mode */
+        @keyframes jiggle {
+            0% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+            100% { transform: rotate(-2deg); }
+        }
+        .admin-mode-active .app-icon-wrapper {
+            animation: jiggle 0.35s infinite ease-in-out;
+        }
+        /* Offset animations so they don't move exactly identically */
+        .admin-mode-active .app-icon-wrapper:nth-child(even) { animation-delay: 0.05s; animation-direction: reverse; }
+        .admin-mode-active .app-icon-wrapper:nth-child(3n) { animation-delay: 0.1s; }
+
+        .admin-mode-active #app-grid {
             padding: 1rem;
             border: 2px dashed #d4d4d8;
-            border-radius: 1.5rem;
-            background: rgba(244, 244, 245, 0.5);
+            border-radius: 2rem;
+            background: rgba(228, 228, 231, 0.3);
         }
 
-        /* Bottom Sheet Animations for Mobile Modal */
-        .bottom-sheet {
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-        }
-        .bottom-sheet.open {
-            transform: translateY(0);
-        }
-        .modal-backdrop {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .modal-backdrop.open {
-            opacity: 1;
-        }
-
-        /* Hide scrollbar for cleaner look */
+        /* Bottom Sheet Animations */
+        .bottom-sheet { transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+        .bottom-sheet.open { transform: translateY(0); }
+        .modal-backdrop { opacity: 0; transition: opacity 0.3s ease; }
+        .modal-backdrop.open { opacity: 1; }
         ::-webkit-scrollbar { display: none; }
+        
+        /* Category Chips */
+        .filter-chip.active { background: #18181b; color: #ffffff; border-color: #18181b; }
     </style>
 </head>
 <body class="p-4 md:p-10 flex flex-col items-center selection:bg-black selection:text-white pb-24">
 
-    <div class="w-full max-w-6xl">
-        <!-- Mobile-Optimized Header -->
-        <div class="flex flex-col mb-8 gap-4 border-b border-zinc-200 pb-6">
-            <div class="flex justify-between items-start w-full">
+    <div class="w-full max-w-5xl">
+        
+        <!-- Header & Search -->
+        <div class="flex flex-col mb-6 gap-4">
+            <div class="flex justify-between items-center w-full">
                 <div>
-                    <p id="clock" class="text-zinc-500 font-medium font-mono text-[10px] tracking-widest uppercase mb-1"></p>
-                    <h1 id="greeting" class="text-3xl md:text-5xl font-extrabold tracking-tighter text-zinc-900">Workspace.</h1>
+                    <h1 class="text-3xl font-extrabold tracking-tighter text-zinc-900">Workspace</h1>
+                    <p id="sync-status" class="text-[10px] font-bold text-zinc-400 flex items-center gap-1.5 uppercase tracking-widest mt-1">
+                        <i class="fas fa-circle-notch fa-spin"></i> Syncing
+                    </p>
                 </div>
-                <!-- Admin Lock Toggle (Fat Finger Target) -->
-                <button id="admin-toggle" class="bg-zinc-100 hover:bg-zinc-200 w-12 h-12 rounded-full text-zinc-600 transition flex items-center justify-center font-bold shadow-sm shrink-0" title="CMS Mode">
+                <button id="admin-toggle" class="bg-white hover:bg-zinc-100 w-12 h-12 rounded-full text-zinc-600 transition flex items-center justify-center font-bold shadow-sm border border-zinc-200 shrink-0" title="Unlock CMS">
                     <i id="lock-icon" class="fas fa-lock"></i>
                 </button>
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-3 w-full">
-                <div class="relative w-full">
-                    <i class="fas fa-search absolute left-4 top-3.5 text-zinc-400 text-sm"></i>
-                    <!-- text-base prevents iOS Auto-Zoom -->
-                    <input type="text" id="search-bar" placeholder="Find application..." class="w-full pl-10 pr-4 py-3 rounded-2xl bg-zinc-100 border-none outline-none focus:ring-2 focus:ring-black text-base font-medium transition-all focus:bg-white focus:shadow-md">
-                </div>
-                <div class="flex justify-between items-center px-1">
-                    <p id="sync-status" class="text-[10px] font-bold text-zinc-400 flex items-center gap-1.5 uppercase tracking-widest">
-                        <i class="fas fa-circle-notch fa-spin"></i> Syncing
-                    </p>
-                </div>
+            <div class="relative w-full">
+                <i class="fas fa-search absolute left-4 top-3.5 text-zinc-400 text-sm"></i>
+                <input type="text" id="search-bar" placeholder="Search apps..." class="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-zinc-200 outline-none focus:border-black focus:ring-1 focus:ring-black text-base font-medium shadow-sm transition-all">
             </div>
+
+            <div id="category-filters" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mt-1"></div>
         </div>
 
-        <!-- Admin Alert Banner (Hidden normally) -->
+        <!-- Admin Alert Banner -->
         <div id="admin-banner" class="hidden mb-6 bg-black text-white p-4 rounded-2xl text-sm font-bold flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
                 <i class="fas fa-pen-ruler text-zinc-400"></i>
-                <span>CMS Unlocked: Tap any card to edit. Press & Hold to reorder.</span>
+                <span>CMS UNLOCKED: Tap to edit. Hold to drag.</span>
             </div>
         </div>
 
-        <!-- The App Grid (Sortable Container) -->
-        <div id="grid-parent" class="transition-all duration-300 grid-wrapper -mx-2 px-2 md:mx-0 md:px-0">
-            <div id="app-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                <!-- Cards inject here -->
+        <!-- THE DOCK (Quick Access) -->
+        <section id="quick-access-section" class="hidden mb-8">
+            <div class="glass-dock rounded-[2rem] p-4 flex gap-4 md:gap-6 overflow-x-auto justify-start md:justify-center items-center shadow-lg">
+                <div id="quick-access-grid" class="flex gap-4 md:gap-6 mx-auto"></div>
+            </div>
+        </section>
+
+        <!-- THE MAIN APP GRID -->
+        <div id="grid-parent" class="transition-all duration-300">
+            <!-- Super High-Density Grid (4 columns on mobile, up to 8 on desktop) -->
+            <div id="app-grid" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-x-3 gap-y-6 md:gap-x-6 md:gap-y-8 place-items-start">
+                <!-- App Icons inject here -->
             </div>
         </div>
 
-        <!-- Add New App Button -->
-        <button id="add-card-btn" class="hidden mt-6 w-full bg-white border-2 border-dashed border-zinc-300 text-zinc-500 hover:border-black hover:text-black hover:bg-zinc-50 font-bold py-6 rounded-2xl transition flex items-center justify-center gap-3">
+        <!-- Deploy New App Button -->
+        <button id="add-card-btn" class="hidden mt-8 w-full bg-white border-2 border-dashed border-zinc-300 text-zinc-500 hover:border-black hover:text-black hover:bg-zinc-50 font-bold py-6 rounded-2xl transition flex items-center justify-center gap-3">
             <i class="fas fa-plus text-xl"></i>
-            <span class="text-sm tracking-widest uppercase">Deploy App</span>
+            <span class="text-sm tracking-widest uppercase">Deploy New App</span>
         </button>
     </div>
 
-    <!-- Mobile-First Bottom Sheet Modal (Hidden) -->
+    <!-- Edit/Deploy Modal (Bottom Sheet) -->
     <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center">
-        <!-- Backdrop -->
-        <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm modal-backdrop"></div>
+        <div id="modal-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm modal-backdrop"></div>
         
-        <!-- Sheet Content -->
-        <div id="modal-sheet" class="bg-white w-full max-w-lg rounded-t-[2rem] md:rounded-[2rem] p-6 pb-safe md:p-10 max-h-[90vh] overflow-y-auto bottom-sheet relative z-10 shadow-2xl">
-            
-            <!-- Mobile Drag Indicator -->
+        <div id="modal-sheet" class="bg-white w-full max-w-lg rounded-t-[2.5rem] md:rounded-[2.5rem] p-6 pb-safe md:p-10 max-h-[90vh] overflow-y-auto bottom-sheet relative z-10 shadow-2xl">
             <div class="w-12 h-1.5 bg-zinc-200 rounded-full mx-auto mb-6 md:hidden"></div>
-
             <div class="flex justify-between items-center mb-6">
-                <h2 id="modal-title" class="text-xl font-extrabold tracking-tight">Deploy App</h2>
+                <h2 id="modal-title" class="text-2xl font-extrabold tracking-tight">Deploy App</h2>
                 <button id="close-x-btn" class="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-500">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
             <div class="space-y-4 mb-8">
-                <!-- Inputs use text-base to prevent iOS Safari zoom -->
                 <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 pl-1">App Name</label>
-                    <input type="text" id="input-title" placeholder="Habit Tracker" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 font-bold outline-none focus:border-black focus:ring-1 focus:ring-black transition text-base">
+                    <label class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 pl-1">App Name (Keep it short)</label>
+                    <input type="text" id="input-title" placeholder="e.g. Habits" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 font-bold outline-none focus:border-black focus:ring-1 focus:ring-black transition text-base">
                 </div>
-                
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 pl-1">URL Path</label>
                     <input type="text" id="input-link" placeholder="/habit" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 font-mono outline-none focus:border-black focus:ring-1 focus:ring-black transition text-blue-600 text-base">
                 </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 pl-1">Description</label>
-                    <input type="text" id="input-desc" placeholder="Brief function of this app" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-base">
+                <div class="hidden"> <!-- Hidden Description to save space, but kept for database integrity -->
+                    <input type="text" id="input-desc" class="w-full">
                 </div>
-
+                <div>
+                    <label class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 pl-1">Category</label>
+                    <select id="input-category" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-base font-medium">
+                        <option value="Business">Business</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Reports">Reports</option>
+                        <option value="Tools">Tools</option>
+                    </select>
+                </div>
                 <div class="grid grid-cols-2 gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                     <div>
-                        <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Icon</label>
+                        <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Icon Shape</label>
                         <select id="input-icon" class="w-full bg-white border border-zinc-200 rounded-lg p-3 outline-none focus:border-black font-medium text-base">
                             <option value="fa-layer-group">Layers</option>
                             <option value="fa-check">Checkmark</option>
-                            <option value="fa-chart-simple">Chart</option>
+                            <option value="fa-chart-pie">Chart</option>
                             <option value="fa-box">Box</option>
-                            <option value="fa-users">Users</option>
                             <option value="fa-calculator">Calc</option>
+                            <option value="fa-bolt">Bolt</option>
+                            <option value="fa-briefcase">Briefcase</option>
+                            <option value="fa-camera">Camera</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Color</label>
+                        <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">App Color</label>
                         <select id="input-color" class="w-full bg-white border border-zinc-200 rounded-lg p-3 outline-none focus:border-black font-medium text-base">
-                            <option value="zinc">Black/White</option>
-                            <option value="blue">Blue</option>
-                            <option value="emerald">Green</option>
-                            <option value="rose">Red</option>
+                            <option value="zinc">Black / Slate</option>
+                            <option value="blue">Ocean Blue</option>
+                            <option value="emerald">Emerald Green</option>
+                            <option value="rose">Rose Red</option>
+                            <option value="amber">Amber Yellow</option>
+                            <option value="purple">Royal Purple</option>
                         </select>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-4 p-4 bg-zinc-100 rounded-2xl border border-zinc-200">
                     <input type="checkbox" id="input-hidden" class="w-6 h-6 accent-black cursor-pointer rounded">
                     <div>
                         <label for="input-hidden" class="block text-sm font-bold text-zinc-900 cursor-pointer">Draft Mode</label>
-                        <p class="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-widest">Hidden from public view</p>
+                        <p class="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-widest">Hide from live grid</p>
                     </div>
                 </div>
             </div>
             
-            <button id="save-btn" class="w-full bg-black text-white font-bold py-4 rounded-xl shadow-xl shadow-black/10 transition flex items-center justify-center gap-2 text-base">
-                <span id="save-btn-text">Save Configuration</span>
+            <button id="save-btn" class="w-full bg-black text-white font-bold py-4 rounded-xl shadow-xl shadow-black/20 transition flex items-center justify-center gap-2 text-base">
+                <span id="save-btn-text">Save App</span>
             </button>
         </div>
     </div>
 
-    <!-- Mobile-Optimized Toast -->
+    <!-- Toast -->
     <div id="toast-container" class="fixed top-4 left-0 right-0 flex flex-col items-center gap-2 z-[100] pointer-events-none px-4"></div>
 
     <!-- Firebase Logic -->
@@ -205,12 +219,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ==========================================
-        // 🔒 EXPERT SECURITY: SHA-256 ENCRYPTED PIN
-        // This is the encrypted hash of "7890". 
-        // It is mathematically impossible for a hacker to reverse-engineer this back into numbers.
+        // 🔒 ADMIN PIN HASH (Currently set for 7890)
         const ADMIN_PIN_HASH = "79f06f8fde333461739f220090a23cb2a79f6d714bee100d0e4b4af249294619"; 
-        // ==========================================
 
         const firebaseConfig = {
             apiKey: "AIzaSyBiaJGzxsIFKLQvkvuueTOcxlvjk5bT3nI",
@@ -228,8 +238,22 @@
         let isAdminMode = false;
         let hubData = [];
         let searchQuery = "";
+        let activeCategory = "All";
         let currentlyEditingId = null; 
         let sortableInstance = null;
+        const CATEGORY_OPTIONS = ["All", "Business", "Personal", "Reports", "Tools"];
+        const FAVORITES_KEY = "fashionhub_workspace_favorites";
+        let favoriteIds = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+
+        // Map colors to vibrant Tailwind hex codes for the icons
+        const iconColors = {
+            zinc: 'bg-zinc-800 text-white',
+            blue: 'bg-blue-500 text-white',
+            emerald: 'bg-emerald-500 text-white',
+            rose: 'bg-rose-500 text-white',
+            amber: 'bg-amber-500 text-white',
+            purple: 'bg-purple-500 text-white'
+        };
 
         const grid = document.getElementById('app-grid');
         const gridParent = document.getElementById('grid-parent');
@@ -239,73 +263,63 @@
         const searchBar = document.getElementById('search-bar');
         const syncStatus = document.getElementById('sync-status');
         const adminBanner = document.getElementById('admin-banner');
+        const categoryFilters = document.getElementById('category-filters');
+        const quickAccessSection = document.getElementById('quick-access-section');
+        const quickAccessGrid = document.getElementById('quick-access-grid');
         
-        // Modal Elements
         const modal = document.getElementById('edit-modal');
         const modalBackdrop = document.getElementById('modal-backdrop');
         const modalSheet = document.getElementById('modal-sheet');
         const closeXBtn = document.getElementById('close-x-btn');
 
-        // Dynamic Context Clock
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-            const hour = now.getHours();
-            let greeting = "Good Evening.";
-            if (hour < 12) greeting = "Good Morning.";
-            else if (hour < 17) greeting = "Good Afternoon.";
-            document.getElementById('greeting').innerText = greeting;
-        }, 1000);
-
         function showToast(message, type = "success") {
             const toast = document.createElement('div');
             const isError = type === "error";
             toast.className = `transform -translate-y-10 opacity-0 transition-all duration-400 flex items-center gap-3 px-5 py-3.5 rounded-full shadow-2xl font-bold text-white text-sm w-max max-w-full ${isError ? 'bg-rose-600' : 'bg-zinc-900'}`;
-            toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check'}"></i> <span class="truncate">${message}</span>`;
+            toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check'}"></i> <span class="truncate">${escapeHtml(message)}</span>`;
             document.getElementById('toast-container').appendChild(toast);
-            
-            // Haptic Feedback (if supported)
             if (navigator.vibrate) navigator.vibrate(isError ? [50, 50, 50] : 50);
-
             setTimeout(() => toast.classList.remove('-translate-y-10', 'opacity-0'), 10);
             setTimeout(() => {
                 toast.classList.add('-translate-y-10', 'opacity-0');
                 setTimeout(() => toast.remove(), 400);
-            }, 2500);
+            }, 2000);
         }
 
-        // Initialize Level 3 Touch-Optimized Drag & Drop
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;',"'": '&#39;' })[char]);
+        }
+
+        function normalizeCategory(category, isHidden = false) {
+            if (isHidden) return "Drafts";
+            return CATEGORY_OPTIONS.includes(category) && category !== "All" ? category : "Business";
+        }
+
+        function toggleFavorite(id) {
+            favoriteIds = favoriteIds.includes(id) ? favoriteIds.filter(item => item !== id) : [id, ...favoriteIds];
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteIds));
+            renderGrid();
+        }
+
         function initSortable() {
             if(sortableInstance) sortableInstance.destroy();
             sortableInstance = Sortable.create(grid, {
-                animation: 300,
+                animation: 250,
                 easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-                delay: 200, // VERY IMPORTANT: 200ms delay allows mobile users to TAP to edit, but HOLD to drag!
+                delay: 200, // 200ms delay to allow tap-to-edit vs hold-to-drag
                 delayOnTouchOnly: true,
                 ghostClass: "sortable-ghost",
                 dragClass: "sortable-drag",
-                disabled: !isAdminMode,
+                disabled: !isAdminMode || activeCategory !== "All",
                 onEnd: async function (evt) {
                     if(evt.oldIndex === evt.newIndex) return; 
-                    showToast("Syncing layout...", "success");
-                    
                     const batch = writeBatch(db);
                     const cards = Array.from(grid.children);
-                    
                     cards.forEach((card, index) => {
                         const docId = card.dataset.id;
-                        const docRef = doc(db, "hubLinks", docId);
-                        batch.update(docRef, { orderIndex: index });
-                        const dataItem = hubData.find(item => item.id === docId);
-                        if(dataItem) dataItem.orderIndex = index;
+                        batch.update(doc(db, "hubLinks", docId), { orderIndex: index });
                     });
-
-                    try {
-                        await batch.commit();
-                        showToast("Layout Saved");
-                    } catch (error) {
-                        showToast("Error saving", "error");
-                    }
+                    try { await batch.commit(); } catch (e) { showToast("Error saving layout", "error"); }
                 }
             });
         }
@@ -314,237 +328,210 @@
         adminToggle.addEventListener('click', () => {
             if (!isAdminMode) {
                 const enteredPin = prompt("🔑 Master PIN:");
-                if (enteredPin === null) return; // User clicked Cancel
-                
-                // 🛡️ Encrypt the user's typing and compare it to the saved hash
-                const hashedInput = CryptoJS.SHA256(enteredPin).toString();
-                
-                if (hashedInput !== ADMIN_PIN_HASH) {
-                    showToast("Access Denied: Invalid PIN", "error");
-                    return;
+                if (enteredPin === null) return;
+                if (CryptoJS.SHA256(enteredPin).toString() !== ADMIN_PIN_HASH) {
+                    showToast("Invalid PIN", "error"); return;
                 }
-                showToast("CMS Unlocked");
-            } else {
-                showToast("Workspace Locked");
             }
-
             isAdminMode = !isAdminMode;
             lockIcon.className = isAdminMode ? "fas fa-unlock text-white" : "fas fa-lock";
             adminToggle.className = isAdminMode 
                 ? "bg-black w-12 h-12 rounded-full text-white transition flex items-center justify-center font-bold shadow-lg shrink-0 scale-110" 
-                : "bg-zinc-100 hover:bg-zinc-200 w-12 h-12 rounded-full text-zinc-600 transition flex items-center justify-center font-bold shadow-sm shrink-0";
+                : "bg-white border border-zinc-200 w-12 h-12 rounded-full text-zinc-600 transition flex items-center justify-center font-bold shadow-sm shrink-0";
             
             addCardBtn.classList.toggle('hidden', !isAdminMode);
             adminBanner.classList.toggle('hidden', !isAdminMode);
             gridParent.classList.toggle('admin-mode-active', isAdminMode);
             
-            if(sortableInstance) sortableInstance.option("disabled", !isAdminMode);
+            if(sortableInstance) sortableInstance.option("disabled", !isAdminMode || activeCategory !== "All");
             renderGrid();
+            if(isAdminMode) showToast("CMS Unlocked - Hold icon to drag");
         });
 
-        searchBar.addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase();
-            
-            // 🕵️ SECRET DEVELOPER TOOL: How to change your PIN later
-            if (searchQuery.startsWith("!encrypt ")) {
-                const newPin = searchQuery.replace("!encrypt ", "");
-                const newHash = CryptoJS.SHA256(newPin).toString();
-                prompt("Here is your new Encrypted PIN Hash. Copy it and paste it into the code:", newHash);
-                e.target.value = ""; 
-                searchQuery = "";
-            }
-            
-            renderGrid();
-        });
+        searchBar.addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderGrid(); });
 
-        // 🚀 EXPERT LEVEL: LOCAL-FIRST CACHING (0-Second Load Time)
-        // This loads your cards instantly from the phone's memory before Firebase even connects!
-        const CACHE_KEY = "fashionhub_workspace_cache";
-        const cachedString = localStorage.getItem(CACHE_KEY);
-        if (cachedString) {
-            try {
-                hubData = JSON.parse(cachedString);
-                renderGrid(); // Draw the screen instantly!
-            } catch(error) { console.error("Cache error", error); }
+        // Generate Icon HTML
+        function generateIconHTML(item, isDock = false) {
+            const colorClass = iconColors[item.color] || iconColors.zinc;
+            const sizeClass = isDock ? "w-14 h-14 text-2xl" : "w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] text-2xl md:text-3xl";
+            const isFav = favoriteIds.includes(item.id);
+            const favBadge = isFav && !isDock ? `<div class="absolute -bottom-1 -right-1 bg-amber-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white"><i class="fas fa-star"></i></div>` : '';
+            const draftBadge = item.isHidden ? `<div class="absolute -top-1 -right-1 bg-zinc-200 text-zinc-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white"><i class="fas fa-eye-slash"></i></div>` : '';
+            const deleteBadge = isAdminMode && !isDock ? `<button class="delete-btn absolute -top-2 -left-2 bg-rose-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 border-white z-20 shadow-sm"><i class="fas fa-minus"></i></button>` : '';
+
+            return `
+                <div class="app-icon-wrapper flex flex-col items-center gap-1.5 w-full touch-manipulation cursor-pointer relative" data-id="${item.id}">
+                    ${deleteBadge}
+                    <div class="relative">
+                        <div class="app-icon-box ${sizeClass} ${colorClass} flex items-center justify-center">
+                            <i class="fas ${escapeHtml(item.icon || 'fa-layer-group')}"></i>
+                        </div>
+                        ${favBadge}
+                        ${draftBadge}
+                    </div>
+                    <span class="text-[11px] md:text-xs font-semibold text-zinc-700 text-center w-full truncate px-1 leading-tight tracking-tight">${escapeHtml(item.title)}</span>
+                </div>
+            `;
         }
 
-        // Live Sync (Now happens silently in the background)
-        onSnapshot(linksCollection, (snapshot) => {
-            syncStatus.innerHTML = `<i class="fas fa-circle text-[8px] text-emerald-500"></i> Cloud Synced`;
-            
-            hubData = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                // Safely convert Firebase timestamps so they can be saved locally
-                if (data.createdAt && data.createdAt.seconds) {
-                    data.createdAtSeconds = data.createdAt.seconds;
-                }
-                hubData.push({ id: doc.id, ...data });
+        function renderQuickAccess() {
+            const pinned = favoriteIds.map(id => hubData.find(item => item.id === id)).filter(Boolean);
+            quickAccessSection.classList.toggle('hidden', pinned.length === 0);
+            quickAccessGrid.innerHTML = pinned.map(item => `
+                <a href="${escapeHtml(item.link)}" class="block no-underline">
+                    ${generateIconHTML(item, true)}
+                </a>
+            `).join('');
+        }
+
+        function renderCategoryFilters() {
+            const counts = CATEGORY_OPTIONS.reduce((acc, cat) => { acc[cat] = 0; return acc; }, {});
+            hubData.filter(i => isAdminMode || !i.isHidden).forEach(item => {
+                counts.All++;
+                counts[normalizeCategory(item.category, item.isHidden)]++;
             });
-            
-            hubData.sort((a, b) => {
-                if (a.orderIndex !== undefined && b.orderIndex !== undefined) return a.orderIndex - b.orderIndex;
-                return (a.createdAtSeconds || 0) - (b.createdAtSeconds || 0);
+
+            categoryFilters.innerHTML = CATEGORY_OPTIONS.map(category => `
+                <button class="filter-chip ${activeCategory === category ? 'active' : ''} shrink-0 border border-zinc-200 bg-white text-zinc-600 px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm" data-category="${category}">
+                    ${escapeHtml(category)} <span class="opacity-60 ml-1">${counts[category] || 0}</span>
+                </button>
+            `).join('');
+
+            categoryFilters.querySelectorAll('button').forEach(btn => {
+                btn.onclick = () => {
+                    activeCategory = btn.dataset.category;
+                    if(sortableInstance) sortableInstance.option("disabled", !isAdminMode || activeCategory !== "All");
+                    renderGrid();
+                };
             });
-            
-            // Save the absolute newest data to phone memory for the next time you open the app
-            localStorage.setItem(CACHE_KEY, JSON.stringify(hubData));
-            
-            renderGrid();
-            initSortable(); 
-        });
+        }
 
         function renderGrid() {
             grid.innerHTML = '';
-            
-            const filteredData = hubData.filter(item => {
-                const matchesSearch = item.title.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
-                const isVisible = isAdminMode || !item.isHidden; 
-                return matchesSearch && isVisible;
+            renderCategoryFilters();
+            renderQuickAccess();
+
+            const visibleData = hubData.filter(item => {
+                const matchesSearch = String(item.title).toLowerCase().includes(searchQuery);
+                const matchesCat = activeCategory === "All" || normalizeCategory(item.category, item.isHidden) === activeCategory;
+                const isVisible = isAdminMode || !item.isHidden;
+                return matchesSearch && matchesCat && isVisible;
             });
 
-            if(filteredData.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-16 text-center text-zinc-400 font-bold text-sm">No apps deployed.</div>`;
-                return;
-            }
-
-            filteredData.forEach(item => {
-                const cardWrapper = document.createElement('div');
-                cardWrapper.className = "relative h-full select-none touch-manipulation"; // Prevents text selection on mobile drag
-                cardWrapper.dataset.id = item.id; 
+            visibleData.forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex justify-center w-full";
+                wrapper.dataset.id = item.id;
                 
-                const color = item.color || 'zinc';
-                const icon = item.icon || 'fa-layer-group';
-                const hiddenBadge = item.isHidden ? `<div class="absolute top-4 right-4 bg-zinc-100 text-zinc-500 text-[9px] uppercase font-bold tracking-widest px-2 py-1 rounded"><i class="fas fa-eye-slash mr-1"></i> Draft</div>` : '';
-                const opacityClass = item.isHidden ? 'opacity-50' : 'opacity-100';
-
-                // Standard Link Element
-                let cardHTML = `
-                    <a href="${isAdminMode ? '#' : item.link}" class="bento-card flex flex-col h-full p-5 md:p-7 block no-underline text-inherit ${opacityClass}">
-                        ${hiddenBadge}
-                        <div class="bg-${color === 'zinc' ? 'zinc-100 text-black' : color + '-50 text-' + color + '-600'} w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4 transition-colors shrink-0">
-                            <i class="fas ${icon}"></i>
-                        </div>
-                        <h2 class="text-lg md:text-xl font-bold text-zinc-900 mb-1 leading-tight">${item.title}</h2>
-                        <p class="text-zinc-500 text-xs md:text-sm leading-relaxed flex-grow">${item.desc}</p>
-                    </a>
-                `;
+                const link = document.createElement('a');
+                link.href = isAdminMode ? '#' : escapeHtml(item.link);
+                link.className = "w-full flex justify-center no-underline outline-none";
+                link.innerHTML = generateIconHTML(item, false);
                 
-                cardWrapper.innerHTML = cardHTML;
-
-                // MOBILE UX MAGIC: If in Admin Mode, tapping the card opens Edit instead of navigating.
+                // Admin Interactions
                 if (isAdminMode) {
-                    const cardLink = cardWrapper.querySelector('a');
-                    cardLink.onclick = (e) => {
-                        e.preventDefault(); // Stop navigation
-                        openEditModal(item);
-                    };
-
-                    // Add massive fat delete button overlay in the top right for easy mobile deletion
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = "absolute -top-2 -right-2 bg-rose-500 text-white w-10 h-10 rounded-full font-bold shadow-lg flex items-center justify-center z-10 border-2 border-white";
-                    deleteBtn.innerHTML = "<i class='fas fa-minus'></i>";
-                    deleteBtn.onclick = async (e) => {
-                        e.preventDefault(); 
-                        e.stopPropagation(); // Stop from opening edit modal
-                        if(confirm(`Permanently delete '${item.title}'?`)) {
-                            await deleteDoc(doc(db, "hubLinks", item.id));
-                            showToast("Deleted", "error");
-                        }
-                    };
-                    cardWrapper.appendChild(deleteBtn);
+                    link.onclick = (e) => { e.preventDefault(); openEditModal(item); };
+                    const deleteBtn = link.querySelector('.delete-btn');
+                    if(deleteBtn) {
+                        deleteBtn.onclick = async (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            if(confirm(`Delete ${item.title}?`)) {
+                                await deleteDoc(doc(db, "hubLinks", item.id));
+                                favoriteIds = favoriteIds.filter(id => id !== item.id);
+                                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteIds));
+                                showToast("App Deleted");
+                            }
+                        };
+                    }
                 }
 
-                grid.appendChild(cardWrapper);
+                wrapper.appendChild(link);
+                grid.appendChild(wrapper);
             });
         }
 
-        // Bottom Sheet Modal Logic
+        // Modal Logic
         function openModal() {
             modal.classList.remove('hidden');
-            // Tiny delay to allow display:block to apply before animating transform
-            setTimeout(() => {
-                modalBackdrop.classList.add('open');
-                modalSheet.classList.add('open');
-            }, 10);
-            document.body.style.overflow = 'hidden'; // Stop background scrolling
+            setTimeout(() => { modalBackdrop.classList.add('open'); modalSheet.classList.add('open'); }, 10);
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
-            modalBackdrop.classList.remove('open');
-            modalSheet.classList.remove('open');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = '';
-            }, 400); // Matches CSS transition time
+            modalBackdrop.classList.remove('open'); modalSheet.classList.remove('open');
+            setTimeout(() => { modal.classList.add('hidden'); document.body.style.overflow = ''; }, 400);
         }
 
         closeXBtn.onclick = closeModal;
-        modalBackdrop.onclick = closeModal; // Tap background to close
+        modalBackdrop.onclick = closeModal;
 
-        // Open Modal for NEW App
         addCardBtn.onclick = () => {
             currentlyEditingId = null;
             document.getElementById('modal-title').innerText = "Deploy App";
             document.getElementById('input-title').value = '';
-            document.getElementById('input-desc').value = '';
             document.getElementById('input-link').value = '/';
+            document.getElementById('input-category').value = 'Business';
             document.getElementById('input-icon').value = 'fa-layer-group';
             document.getElementById('input-color').value = 'zinc';
             document.getElementById('input-hidden').checked = false;
-            document.getElementById('save-btn-text').innerText = "Deploy Now";
+            document.getElementById('save-btn-text').innerText = "Deploy to Grid";
             openModal();
         };
 
-        // Open Modal for EDITING
         function openEditModal(item) {
             currentlyEditingId = item.id;
-            document.getElementById('modal-title').innerText = "Edit Configuration";
+            document.getElementById('modal-title').innerHTML = `Edit App <button id="pin-btn" class="ml-4 text-sm px-3 py-1 bg-amber-100 text-amber-600 rounded-full font-bold border border-amber-200"><i class="fas fa-star"></i> ${favoriteIds.includes(item.id) ? 'Unpin' : 'Pin to Dock'}</button>`;
             document.getElementById('input-title').value = item.title;
-            document.getElementById('input-desc').value = item.desc;
             document.getElementById('input-link').value = item.link;
+            document.getElementById('input-category').value = normalizeCategory(item.category, item.isHidden);
             document.getElementById('input-icon').value = item.icon || 'fa-layer-group';
             document.getElementById('input-color').value = item.color || 'zinc';
             document.getElementById('input-hidden').checked = item.isHidden || false;
             document.getElementById('save-btn-text').innerText = "Update";
+            
+            document.getElementById('pin-btn').onclick = (e) => {
+                e.preventDefault(); toggleFavorite(item.id);
+                document.getElementById('pin-btn').innerHTML = `<i class="fas fa-star"></i> ${favoriteIds.includes(item.id) ? 'Unpin' : 'Pin to Dock'}`;
+            };
             openModal();
         }
 
-        // Save / Update Logic
         document.getElementById('save-btn').onclick = async () => {
-            const title = document.getElementById('input-title').value;
-            const desc = document.getElementById('input-desc').value;
-            const link = document.getElementById('input-link').value;
-            const icon = document.getElementById('input-icon').value;
-            const color = document.getElementById('input-color').value;
-            const isHidden = document.getElementById('input-hidden').checked;
+            const title = document.getElementById('input-title').value.trim();
+            const link = document.getElementById('input-link').value.trim();
+            const payload = { 
+                title, 
+                link: link.startsWith('/') || link.startsWith('http') ? link : '/' + link, 
+                category: normalizeCategory(document.getElementById('input-category').value, document.getElementById('input-hidden').checked), 
+                icon: document.getElementById('input-icon').value, 
+                color: document.getElementById('input-color').value, 
+                isHidden: document.getElementById('input-hidden').checked 
+            };
 
             if(!title || !link) return showToast("Title and Path required", "error");
 
-            const saveBtnText = document.getElementById('save-btn-text');
-            const originalText = saveBtnText.innerText;
-            saveBtnText.innerText = "Processing...";
-
-            const payload = { title, desc, link, icon, color, isHidden };
-
             try {
-                if (currentlyEditingId) {
-                    await updateDoc(doc(db, "hubLinks", currentlyEditingId), payload);
-                    showToast("Updated Successfully");
-                } else {
-                    payload.createdAt = new Date();
-                    payload.orderIndex = hubData.length; 
-                    await addDoc(linksCollection, payload);
-                    showToast("Deployed Successfully");
-                }
+                if (currentlyEditingId) await updateDoc(doc(db, "hubLinks", currentlyEditingId), payload);
+                else { payload.createdAt = new Date(); payload.orderIndex = hubData.length; await addDoc(linksCollection, payload); }
                 closeModal();
-            } catch (error) {
-                showToast("System Error", "error");
-                console.error(error);
-            } finally {
-                setTimeout(() => saveBtnText.innerText = originalText, 500);
-            }
+            } catch (error) { showToast("System Error", "error"); }
         };
+
+        // Cache & Live Sync
+        const CACHE_KEY = "fashionhub_workspace_cache";
+        if (localStorage.getItem(CACHE_KEY)) {
+            try { hubData = JSON.parse(localStorage.getItem(CACHE_KEY)); renderGrid(); } catch(e) {}
+        }
+
+        onSnapshot(linksCollection, (snapshot) => {
+            document.getElementById('sync-status').innerHTML = `<i class="fas fa-circle text-[8px] text-emerald-500"></i> Cloud Synced`;
+            hubData = [];
+            snapshot.forEach((doc) => { hubData.push({ id: doc.id, ...doc.data() }); });
+            hubData.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+            localStorage.setItem(CACHE_KEY, JSON.stringify(hubData));
+            renderGrid();
+            initSortable(); 
+        });
     </script>
 </body>
 </html>

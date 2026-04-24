@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Design Tracker Pro</title>
+    
+    <!-- PWA (App) Meta Tags -->
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tracker">
+    
+    <!-- App Manifest & Icon -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiRGVzaWduIFRyYWNrZXIiLCJzaG9ydF9uYW1lIjoiVHJhY2tlciIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjhmYmZjIiwidGhlbWVfY29sb3IiOiIjMWU0MGFmIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlpTQjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F4TURBZ01UQXdJajQ4Y21WamRDQjNhV1IwYkQwaU1UQXdJaUJoWldsbmFIUTlJakV3TUNJZ2NIZzBJakl3SWlCbWFXeHNQU0lqTVdVME1HRm1JaTgrUEhCaGRHZ2daRDBpVFRNdyBJRFV3IElFdDBOU0E0TlNBc1R6Y3dJRE0xSWlCemRISnZhMlU5SW5kb2FYUmxJaUJoWm1sc2JDMDlJbTV2Ym1VaUlITjBjbTlyWlMxc2FXNWxZMkZ3UFNKeWIzVnVaQ0lnYzNSeWIydGxjMDFzYVc1bGFtOXBiajBpY205MWJtUWlMejQ4TDNOMmN6ND0iLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifV19">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMWU0MGFmIi8+PHBhdGggZD0iTTMwIDUwIEw0NSA2NSBMNzAgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FIREBASE LIBRARIES -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f1f5f9;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; border: 2px solid #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        button, input, textarea { touch-action: manipulation; }
+
+        /* Premium Depth Shadows */
+        .shadow-heavy { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); }
+        .shadow-inner-glow { box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 4px 0 rgba(0, 0, 0, 0.05); }
+        
+        /* 3D Glass Bar Effect */
+        .glass-bar-container {
+            background: #e2e8f0;
+            box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 2px solid #ffffff;
+        }
+        .segment-3d {
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 0 rgba(0,0,0,0.1), inset -1px 0 0 rgba(0,0,0,0.03);
+        }
+
+        /* Unsaved Pulse */
+        @keyframes pulse-warning {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
+        }
+        .unsaved-pulse { 
+            animation: pulse-warning 2s infinite; 
+            background: linear-gradient(135deg, #f97316, #ea580c) !important;
+            border-color: #c2410c !important; 
+            color: white !important; 
+        }
+
+        /* Circular Progress Chart */
+        .circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+        .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 3.8; }
+        .circle { fill: none; stroke-width: 3.8; stroke-linecap: round; transition: stroke-dasharray 1s ease-out; }
+        
+        /* Floating Toasts */
+        .toast-enter { transform: translateY(100%); opacity: 0; }
+        .toast-enter-active { transform: translateY(0); opacity: 1; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast-exit { transform: translateY(10%); opacity: 0; transition: all 0.3s ease-in; }
+    </style>
+</head>
+<body class="text-slate-800 p-3 sm:p-6 lg:p-8 min-h-screen overflow-x-hidden">
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4"></div>
+
+    <!-- Floating Tooltip -->
+    <div id="tooltip" class="fixed z-50 bg-slate-900 text-white p-3.5 rounded-xl shadow-2xl text-sm pointer-events-none opacity-0 transition-opacity duration-150 transform -translate-x-1/2 -translate-y-[120%] border border-slate-700" style="left: 0px; top: 0px;">
+        <div class="flex items-center gap-2 mb-2">
+            <div id="tooltip-color" class="w-3 h-3 rounded-full shadow-inner"></div>
+            <span id="tooltip-status" class="font-bold tracking-wide uppercase text-xs"></span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-slate-300 font-medium">
+            <span>Range:</span><span id="tooltip-range" class="text-white font-bold text-right"></span>
+            <span>Length:</span><span id="tooltip-length" class="text-white font-bold text-right"></span>
+        </div>
+        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-slate-900 rotate-45 border-r border-b border-slate-700"></div>
+    </div>
+
+    <!-- Manual Install Instructions Modal -->
+    <div id="manual-install-modal" class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl relative border-2 border-white">
+            <button onclick="document.getElementById('manual-install-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full p-1.5 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-bold mb-2 text-slate-900">Install App Manually</h3>
+            <p class="text-sm text-slate-500 mb-6 font-medium">Automatic installation is blocked on this browser. You can still install it easily!</p>
+
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                    <h4 class="font-bold text-blue-900 flex items-center gap-2">For Android (Chrome):</h4>
+                    <ol class="list-decimal pl-5 text-sm mt-2 text-blue-800 space-y-1 font-medium">
+                        <li>Tap the <strong>3-dots menu</strong> (top right).</li>
+                        <li>Tap <strong>Add to Home screen</strong>.</li>
+                    </ol>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-slate-900 flex items-center gap-2">For iPhone (Safari):</h4>
+                    <ol class="list-decimal pl-5 text-sm mt-2 text-slate-700 space-y-1 font-medium">
+                        <li>Tap the <strong>Share</strong> button at the bottom.</li>
+                        <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <button onclick="document.getElementById('manual-install-modal').classList.add('hidden')" class="w-full mt-6 bg-slate-900 text-white py-3.5 rounded-xl font-bold text-lg active:scale-95 transition-transform shadow-lg">Got it</button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto space-y-5 sm:space-y-6">
+        
+        <!-- Header Dashboard Widget -->
+        <div class="bg-white rounded-3xl shadow-heavy border border-slate-100 p-5 sm:p-6 flex flex-col md:flex-row justify-between items-center gap-5 sm:gap-8 relative overflow-hidden">
+            <!-- Decorative Background blob -->
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60"></div>
+
+            <div class="relative z-10 w-full md:w-auto">
+                <div class="flex items-center justify-between sm:justify-start gap-3">
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Design Tracker</h1>
+                    <button id="install-btn" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-full text-xs font-bold transition-colors border border-blue-200 shadow-sm">
+                        Get App
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span id="sync-dot" class="relative flex h-3 w-3">
+                      <span id="sync-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span id="sync-core" class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-sm border border-white"></span>
+                    </span>
+                    <span id="sync-text" class="text-xs sm:text-sm font-bold text-emerald-600">Live Sync Connected</span>
+                </div>
+            </div>
+
+            <!-- Visual Stats Area (MOBILE FIXED) -->
+            <div class="flex items-center justify-center sm:justify-start gap-2 sm:gap-6 w-full md:w-auto relative z-10 bg-slate-50 p-2 sm:p-3 sm:pr-6 rounded-2xl border border-slate-200 shadow-inner">
+                
+                <!-- Animated Donut Chart -->
+                <div class="w-12 h-12 sm:w-16 sm:h-16 relative flex-shrink-0">
+                    <svg viewBox="0 0 36 36" class="circular-chart text-blue-600 w-full h-full transform -rotate-90 drop-shadow-sm">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path id="donut-progress" class="circle" stroke="currentColor" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="stat-percent" class="text-[10px] sm:text-xs font-extrabold text-slate-800">0%</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 sm:gap-6 text-xs sm:text-sm font-medium w-full justify-around sm:justify-start">
+                    <div class="flex flex-col items-center sm:items-start text-center sm:text-left">
+                        <span class="text-slate-500 text-[9px] sm:text-xs font-bold uppercase tracking-wider leading-tight">Total<br class="sm:hidden"> Range</span>
+                        <span id="stat-total" class="text-slate-900 text-sm sm:text-xl font-extrabold mt-0.5">0</span>
+                    </div>
+                    <div class="w-px bg-slate-200"></div>
+                    <div class="flex flex-col items-center sm:items-start text-center sm:text-left">
+                        <span class="text-blue-600 text-[9px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1 leading-tight"><div class="hidden sm:block w-2 h-2 bg-blue-500 rounded-full"></div> Used</span>
+                        <span id="stat-used" class="text-blue-800 text-sm sm:text-xl font-extrabold mt-0.5">0</span>
+                    </div>
+                    <div class="w-px bg-slate-200"></div>
+                    <div class="flex flex-col items-center sm:items-start text-center sm:text-left">
+                        <span class="text-orange-500 text-[9px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1 leading-tight"><div class="hidden sm:block w-2 h-2 bg-orange-400 rounded-full"></div> Unused</span>
+                        <span id="stat-unused" class="text-orange-700 text-sm sm:text-xl font-extrabold mt-0.5">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+            <div class="space-y-5 sm:space-y-6">
+                
+                <!-- Data Config Card -->
+                <div class="bg-white rounded-3xl shadow-heavy border border-slate-100 p-5 sm:p-6">
+                    <div class="flex justify-between items-center mb-4 sm:mb-5">
+                        <h2 class="text-lg sm:text-xl font-extrabold flex items-center gap-2 text-slate-900">Configure</h2>
+                        <div class="flex gap-2">
+                            <button onclick="exportCSV()" class="bg-white border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 active:scale-95 shadow-sm">
+                                CSV
+                            </button>
+                            <button id="save-btn" onclick="saveData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 active:scale-95 shadow-md shadow-blue-500/30 border border-blue-700">
+                                Save Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-5">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold text-slate-600 mb-1.5 ml-1">Start Range</label>
+                            <input id="input-start" type="number" class="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all font-bold text-base sm:text-lg text-slate-800 shadow-inner" oninput="markUnsaved()">
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold text-slate-600 mb-1.5 ml-1">End Range</label>
+                            <input id="input-end" type="number" class="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all font-bold text-base sm:text-lg text-slate-800 shadow-inner" oninput="markUnsaved()">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mb-1.5 ml-1">
+                            <label class="block text-xs sm:text-sm font-bold text-slate-600">Used Numbers</label>
+                            <button onclick="formatAndCleanTextarea()" class="text-[10px] sm:text-xs text-blue-700 hover:text-blue-900 font-bold bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1 active:scale-95 transition-all shadow-sm">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                Clean
+                            </button>
+                        </div>
+                        <textarea id="input-used" rows="5" placeholder="e.g. 100, 102, 110-150" class="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none resize-y font-mono font-semibold text-sm sm:text-base text-slate-800 transition-all shadow-inner leading-relaxed" oninput="markUnsaved()"></textarea>
+                    </div>
+                </div>
+
+                <!-- Quick Search -->
+                <div class="bg-white rounded-3xl shadow-heavy border border-slate-100 p-5 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-extrabold mb-4 text-slate-900">Quick Search</h2>
+                    <div class="flex gap-2 relative">
+                        <!-- MOBILE FIXED: Added min-w-0 so input shrinks properly -->
+                        <input id="search-input" type="number" placeholder="Find design..." class="flex-1 min-w-0 pl-3 sm:pl-4 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all font-bold text-base sm:text-lg text-slate-800 shadow-inner">
+                        <!-- MOBILE FIXED: Added shrink-0 so button is never pushed off screen -->
+                        <button onclick="performSearch()" class="shrink-0 bg-slate-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl hover:bg-slate-800 transition-all active:scale-95 font-bold shadow-md shadow-slate-900/20">Check</button>
+                    </div>
+                    <div id="search-result-container" class="hidden mt-4 sm:mt-5 p-4 sm:p-5 rounded-2xl border-2 flex items-start gap-3 transition-all duration-300 shadow-sm">
+                        <div id="search-result-text" class="text-sm w-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-5 sm:space-y-6">
+                
+                <!-- Glass Visualization Bar -->
+                <div class="bg-white rounded-3xl shadow-heavy border border-slate-100 p-5 sm:p-6 overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end mb-4 sm:mb-5 gap-3 sm:gap-4">
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Visual Spectrum</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">Interactive map of all numbers</p>
+                        </div>
+                        
+                        <div class="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto">
+                            <div class="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600">
+                                <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-blue-500 shadow-inner-glow"></div> Used</span>
+                                <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-inner-glow"></div> Top 5</span>
+                                <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-orange-400 shadow-inner-glow"></div> Unused</span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between w-full sm:w-auto gap-1 bg-slate-100 p-1 sm:p-1.5 rounded-xl border border-slate-200 shadow-inner">
+                                <button onclick="changeZoom(-1)" class="p-1.5 sm:p-2 bg-white hover:bg-slate-50 rounded-lg font-extrabold w-8 sm:w-10 text-slate-700 shadow-sm border border-slate-200 active:scale-95 transition-all">-</button>
+                                <span id="zoom-label" class="text-xs sm:text-sm font-extrabold w-8 sm:w-12 text-center text-slate-800">1x</span>
+                                <button onclick="changeZoom(1)" class="p-1.5 sm:p-2 bg-white hover:bg-slate-50 rounded-lg font-extrabold w-8 sm:w-10 text-slate-700 shadow-sm border border-slate-200 active:scale-95 transition-all">+</button>
+                                <div class="w-px h-5 sm:h-6 bg-slate-300 mx-1"></div>
+                                <button onclick="resetZoom()" class="px-2 sm:px-3 py-1.5 sm:py-2 bg-white hover:bg-slate-50 rounded-lg text-[10px] sm:text-xs font-bold text-slate-700 shadow-sm border border-slate-200 active:scale-95 transition-all">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full overflow-x-auto pb-3 sm:pb-5 custom-scrollbar cursor-crosshair touch-pan-x">
+                        <div class="glass-bar-container rounded-2xl p-1 sm:p-1.5">
+                            <div id="visualization-bar" class="h-12 sm:h-16 rounded-xl overflow-hidden flex shadow-inner border border-black/5 transition-none ease-out relative" style="min-width: 100%;">
+                            </div>
+                        </div>
+                        <div id="axis-labels" class="flex justify-between text-xs sm:text-sm text-slate-500 mt-2 sm:mt-3 font-bold px-2" style="min-width: 100%;">
+                            <span id="label-start"></span>
+                            <span id="label-scroll" class="hidden text-blue-500 animate-pulse bg-blue-50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs border border-blue-100 shadow-sm">← Scroll to see more →</span>
+                            <span id="label-end"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Breakdown -->
+                <!-- FIX: Removed 'h-[400px] sm:h-[420px]' so the table naturally expands -->
+                <div class="bg-white rounded-3xl shadow-heavy border border-slate-100 overflow-hidden flex flex-col">
+                    <div class="p-4 sm:p-6 border-b-2 border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-white z-10 shrink-0">
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Available Gaps (30+)</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 sm:mt-1">Largest open spaces for new designs.</p>
+                        </div>
+                        <button onclick="shareToWhatsApp()" class="bg-[#25D366] hover:bg-[#20bd5a] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex justify-center items-center gap-2 transition-all active:scale-95 shadow-md shadow-[#25D366]/30 border border-[#1ea851] w-full sm:w-auto">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.666.598 1.236.771 1.41.858.174.087.275.072.376-.043.1-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.082 21.083c-1.558 0-3.084-.393-4.449-1.139l-4.966 1.305 1.328-4.843c-.83-1.405-1.267-3.037-1.267-4.73 0-5.074 4.129-9.202 9.204-9.202 5.072 0 9.201 4.128 9.201 9.202 0 5.075-4.129 9.207-9.051 9.207z"/></svg>
+                            Share Gaps
+                        </button>
+                    </div>
+                    <!-- MOBILE FIXED: Removed 'overflow-y-auto' so it doesn't create a trapped scroll box -->
+                    <div class="overflow-x-auto custom-scrollbar flex-1 relative bg-slate-50/50">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-white/95 backdrop-blur-md text-slate-500 uppercase tracking-wider text-[10px] sm:text-xs font-bold sticky top-0 shadow-[0_2px_10px_rgba(0,0,0,0.03)] z-10 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-2 sm:px-6 py-3 sm:py-4">Start</th>
+                                    <th class="px-2 sm:px-6 py-3 sm:py-4">End</th>
+                                    <th class="px-1 sm:px-6 py-3 sm:py-4 text-center sm:text-left">Status</th>
+                                    <th class="px-3 sm:px-6 py-3 sm:py-4 text-right">Length</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body" class="divide-y divide-slate-200 bg-white">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- FIREBASE KEYS ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyABVL71o-yV7VKy2m2hMcpNlJocIqAvcmg",
+            authDomain: "design-tracker-983a1.firebaseapp.com",
+            projectId: "design-tracker-983a1",
+            storageBucket: "design-tracker-983a1.firebasestorage.app",
+            messagingSenderId: "1002680183988",
+            appId: "1:1002680183988:web:4232fe0b3d5c79e4ef3be1"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Application State
+        let zoomLevel = 1;
+        let updateTimeout = null;
+        let segmentsData = [];
+        let topGapsData = [];
+        let hasUnsavedChanges = false;
+        let isInitialLoad = true;
+
+        // --- NEW PREMIUM TOAST SYSTEM ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = type === 'success' ? 'bg-slate-900 border-slate-800' : (type === 'error' ? 'bg-red-600 border-red-700' : 'bg-blue-600 border-blue-700');
+            let icon = type === 'success' 
+                ? `<svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>` 
+                : `<svg class="w-5 h-5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            
+            toast.className = `toast-enter ${bgClass} border text-white px-5 py-4 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] text-sm font-bold flex items-center gap-3 w-full`;
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-enter-active');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // DOM Elements
+        const elStart = document.getElementById('input-start');
+        const elEnd = document.getElementById('input-end');
+        const elUsed = document.getElementById('input-used');
+        const elBar = document.getElementById('visualization-bar');
+        const elTable = document.getElementById('table-body');
+        const installBtn = document.getElementById('install-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        // PWA INSTALLATION
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') { installBtn.classList.add('hidden'); }
+                deferredPrompt = null;
+            } else {
+                document.getElementById('manual-install-modal').classList.remove('hidden');
+            }
+        });
+
+        // Firebase Load/Save
+        window.onload = () => { 
+            processData(); // Guarantee UI draws even if offline
+            setupRealtimeSync(); 
+        };
+
+        let isSyncing = false;
+
+        function setConnectionStatus(status) {
+            const ping = document.getElementById('sync-ping');
+            const core = document.getElementById('sync-core');
+            const text = document.getElementById('sync-text');
+            
+            if (status === 'online') {
+                ping.classList.remove('hidden');
+                core.classList.replace('bg-red-500', 'bg-emerald-500');
+                text.innerText = "Live Sync Connected";
+                text.className = "text-xs sm:text-sm font-bold text-emerald-600";
+            } else {
+                ping.classList.add('hidden');
+                core.classList.replace('bg-emerald-500', 'bg-red-500');
+                text.innerText = "Offline Mode";
+                text.className = "text-xs sm:text-sm font-bold text-red-500";
+            }
+        }
+
+        function setupRealtimeSync() {
+            try {
+                db.collection("appData").doc("myTracker").onSnapshot((doc) => {
+                    setConnectionStatus('online');
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.start != elStart.value || data.end != elEnd.value || data.used != elUsed.value) {
+                            if (!hasUnsavedChanges) {
+                                isSyncing = true;
+                                elStart.value = data.start;
+                                elEnd.value = data.end;
+                                elUsed.value = data.used;
+                                if (!isInitialLoad) { showToast("Data updated from another device!", "info"); }
+                                processData();
+                                isSyncing = false;
+                            }
+                        }
+                    } else if (isInitialLoad) {
+                        elStart.value = 0; elEnd.value = 10000;
+                        processData();
+                    }
+                    isInitialLoad = false;
+                }, (error) => {
+                    console.warn("Cloud sync error:", error);
+                    setConnectionStatus('offline');
+                    if(isInitialLoad) { isInitialLoad = false; processData(); }
+                });
+            } catch(e) {
+                console.warn("Offline/Local Env");
+                setConnectionStatus('offline');
+                if(isInitialLoad) { isInitialLoad = false; processData(); }
+            }
+        }
+
+        function saveData() {
+            const data = { start: elStart.value, end: elEnd.value, used: elUsed.value };
+
+            db.collection("appData").doc("myTracker").set(data).then(() => {
+                showToast("Data safely saved to Cloud!");
+                
+                hasUnsavedChanges = false;
+                saveBtn.classList.remove('unsaved-pulse');
+                saveBtn.innerText = "Saved!";
+                setTimeout(() => {
+                    if(!hasUnsavedChanges) { saveBtn.innerText = "Save Data"; }
+                }, 2000);
+
+            }).catch((error) => {
+                showToast("Save failed. Database Rules might not be public.", "error");
+            });
+        }
+
+        function markUnsaved() {
+            if (isInitialLoad || isSyncing) return;
+            hasUnsavedChanges = true;
+            saveBtn.classList.add('unsaved-pulse');
+            saveBtn.innerText = `Save Changes`;
+            scheduleUpdate();
+        }
+
+        function parseUsedNumbers(text) {
+            const usedSet = new Set();
+            const parts = text.split(/[\s,]+/);
+            
+            parts.forEach(part => {
+                part = part.trim();
+                if (!part) return;
+                
+                if (part.includes('-')) {
+                    const rangeParts = part.split('-');
+                    if (rangeParts.length === 2) {
+                        const s = parseInt(rangeParts[0], 10);
+                        const e = parseInt(rangeParts[1], 10);
+                        if (!isNaN(s) && !isNaN(e)) {
+                            const min = Math.min(s, e);
+                            const max = Math.max(s, e);
+                            for (let i = min; i <= max; i++) usedSet.add(i);
+                        }
+                    }
+                } else {
+                    const num = parseInt(part, 10);
+                    if (!isNaN(num)) usedSet.add(num);
+                }
+            });
+            return usedSet;
+        }
+
+        function formatAndCleanTextarea() {
+            const usedSet = parseUsedNumbers(elUsed.value);
+            const sortedArray = Array.from(usedSet).sort((a, b) => a - b);
+            
+            if (sortedArray.length === 0) { elUsed.value = ""; return; }
+
+            let formattedStrings = [];
+            let currentStart = sortedArray[0];
+            let currentPrev = sortedArray[0];
+
+            for (let i = 1; i < sortedArray.length; i++) {
+                if (sortedArray[i] === currentPrev + 1) {
+                    currentPrev = sortedArray[i];
+                } else {
+                    if (currentStart === currentPrev) {
+                        formattedStrings.push(`${currentStart}`);
+                    } else {
+                        formattedStrings.push(`${currentStart}-${currentPrev}`);
+                    }
+                    currentStart = sortedArray[i];
+                    currentPrev = sortedArray[i];
+                }
+            }
+            
+            if (currentStart === currentPrev) {
+                formattedStrings.push(`${currentStart}`);
+            } else {
+                formattedStrings.push(`${currentStart}-${currentPrev}`);
+            }
+
+            elUsed.value = formattedStrings.join(",\n");
+            markUnsaved();
+            showToast("Numbers cleaned and sorted beautifully!");
+        }
+
+        function scheduleUpdate() {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(processData, 400);
+        }
+
+        // CORE LOGIC
+        function processData() {
+            let startNum = parseInt(elStart.value, 10);
+            let endNum = parseInt(elEnd.value, 10);
+            if (isNaN(startNum)) startNum = 0;
+            if (isNaN(endNum)) endNum = 10000;
+            if (startNum > endNum) { const temp = startNum; startNum = endNum; endNum = temp; }
+
+            const usedSet = parseUsedNumbers(elUsed.value);
+            
+            const segments = [];
+            let currentStatus = usedSet.has(startNum) ? 'Used' : 'Unused';
+            let currentStart = startNum;
+            let usedCount = 0;
+
+            for (let i = startNum; i <= endNum; i++) {
+                const status = usedSet.has(i) ? 'Used' : 'Unused';
+                if (status === 'Used') usedCount++;
+
+                if (status !== currentStatus) {
+                    segments.push({ start: currentStart, end: i - 1, status: currentStatus, length: (i - 1) - currentStart + 1 });
+                    currentStart = i;
+                    currentStatus = status;
+                }
+            }
+            segments.push({ start: currentStart, end: endNum, status: currentStatus, length: endNum - currentStart + 1 });
+
+            segmentsData = segments;
+            const totalLen = endNum - startNum + 1;
+
+            let allGaps = segments.filter(s => s.status === 'Unused');
+            allGaps.sort((a, b) => b.length - a.length);
+            let top5Gaps = allGaps.slice(0, 5);
+            top5Gaps.forEach(gap => gap.isTopGap = true);
+
+            // Update Text Stats
+            document.getElementById('stat-total').innerText = totalLen.toLocaleString();
+            document.getElementById('stat-used').innerText = usedCount.toLocaleString();
+            document.getElementById('stat-unused').innerText = (totalLen - usedCount).toLocaleString();
+
+            // Update Visual Donut Chart
+            const percentUsed = totalLen === 0 ? 0 : Math.round((usedCount / totalLen) * 100);
+            document.getElementById('stat-percent').innerText = `${percentUsed}%`;
+            document.getElementById('donut-progress').style.strokeDasharray = `${percentUsed}, 100`;
+
+            renderBar(segments, totalLen);
+            renderTable(segments, totalLen);
+
+            document.getElementById('label-start').innerText = startNum;
+            document.getElementById('label-end').innerText = endNum;
+        }
+
+        // ABSOLUTE POSITIONING RENDERER (Fixes the flexbox crush bug entirely)
+        function renderBar(segments, totalLength) {
+            elBar.innerHTML = ''; 
+            const fragment = document.createDocumentFragment();
+            let currentLeft = 0; 
+            
+            segments.forEach(segment => {
+                const widthPercent = (segment.length / totalLength) * 100;
+                const div = document.createElement('div');
+                
+                // Absolutely precise positioning
+                div.style.position = 'absolute';
+                div.style.left = `${currentLeft}%`;
+                div.style.width = `${widthPercent}%`;
+                div.style.height = '100%';
+                
+                let bgClass = '';
+                if (segment.status === 'Used') bgClass = 'bg-gradient-to-b from-blue-400 to-blue-600 segment-3d';
+                else if (segment.isTopGap) bgClass = 'bg-gradient-to-b from-emerald-300 to-emerald-500 segment-3d';
+                else bgClass = 'bg-gradient-to-b from-orange-300 to-orange-500 segment-3d opacity-90';
+                
+                div.className = `cursor-pointer ${bgClass}`;
+                div.onmousemove = (e) => showTooltip(e, segment);
+                div.onmouseleave = hideTooltip;
+                fragment.appendChild(div);
+
+                currentLeft += widthPercent;
+            });
+            
+            elBar.appendChild(fragment);
+        }
+
+        // MOBILE PERFECT TABLE RENDERER
+        function renderTable(segments, totalLength) {
+            let gaps = segments.filter(s => s.status === 'Unused' && s.length >= 30);
+            gaps.sort((a, b) => b.length - a.length);
+            let topGaps = gaps.slice(0, 20);
+            topGaps.sort((a, b) => a.start - b.start);
+
+            topGapsData = topGaps;
+
+            elTable.innerHTML = '';
+            let html = '';
+            
+            if (topGaps.length === 0) {
+                html = `
+                <tr>
+                    <td colspan="4" class="px-4 sm:px-6 py-10 sm:py-16 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900">No Large Gaps Found</h3>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">Try expanding your Start/End range.</p>
+                        </div>
+                    </td>
+                </tr>`;
+            } else {
+                topGaps.forEach(segment => {
+                    const pct = ((segment.length / totalLength) * 100).toFixed(1);
+                    
+                    const badgeClass = segment.isTopGap 
+                        ? 'bg-emerald-500 text-white shadow-sm sm:shadow-md shadow-emerald-500/30 border border-emerald-400' 
+                        : 'bg-white text-orange-600 border sm:border-2 border-orange-200 shadow-sm';
+                    const displayLabel = segment.isTopGap ? 'TOP GAP' : 'UNUSED';
+
+                    html += `
+                        <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group border-b border-slate-100" onclick="copyRow(this, ${segment.start}, ${segment.end})" title="Tap to copy this gap">
+                            <td class="px-2 sm:px-6 py-3 sm:py-4 font-bold text-slate-900 text-sm sm:text-base">${segment.start}</td>
+                            <td class="px-2 sm:px-6 py-3 sm:py-4 font-bold text-slate-900 text-sm sm:text-base">${segment.end}</td>
+                            <td class="px-1 sm:px-6 py-3 sm:py-4 text-center sm:text-left">
+                                <span class="px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-xs font-extrabold inline-block min-w-[4.5rem] sm:min-w-[7rem] text-center tracking-wide ${badgeClass} leading-tight">
+                                    ${displayLabel} <span class="opacity-80 sm:ml-1 block sm:inline">(${pct}%)</span>
+                                </span>
+                            </td>
+                            <td class="px-3 sm:px-6 py-3 sm:py-4 text-right font-extrabold text-slate-900 text-sm sm:text-base flex justify-end items-center gap-2 sm:gap-3">
+                                <span class="hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 text-[10px] font-bold uppercase tracking-wider bg-blue-100 px-2 py-1 rounded-md">Copy</span>
+                                ${segment.length}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            elTable.innerHTML = html;
+        }
+
+        // Quick Search
+        function performSearch() {
+            const query = parseInt(document.getElementById('search-input').value, 10);
+            const container = document.getElementById('search-result-container');
+            const textEl = document.getElementById('search-result-text');
+            if (isNaN(query)) return;
+            
+            const segment = segmentsData.find(s => query >= s.start && query <= s.end);
+            container.classList.remove('hidden', 'bg-red-50', 'bg-blue-50', 'bg-orange-50', 'border-red-200', 'border-blue-200', 'border-orange-200');
+            
+            if (segment) {
+                const isUsed = segment.status === 'Used';
+                container.classList.add(isUsed ? 'bg-blue-50' : 'bg-orange-50', isUsed ? 'border-blue-300' : 'border-orange-300');
+                
+                const badge = isUsed 
+                    ? `<span class="bg-blue-600 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-md shadow-blue-500/30">TAKEN</span>`
+                    : `<span class="bg-orange-500 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-md shadow-orange-500/30">AVAILABLE</span>`;
+
+                textEl.innerHTML = `
+                    <div class="flex justify-between items-center w-full">
+                        <div>
+                            <p class="font-extrabold text-slate-900 text-base sm:text-lg mb-0.5 sm:mb-1">Design No: ${query}</p>
+                            <p class="text-slate-600 font-bold text-xs sm:text-sm">Block Location: ${segment.start} – ${segment.end}</p>
+                        </div>
+                        ${badge}
+                    </div>`;
+            } else {
+                container.classList.add('bg-red-50', 'border-red-300');
+                textEl.innerHTML = `<p class="font-extrabold text-slate-900 text-base sm:text-lg mb-0.5 sm:mb-1">Design No: ${query}</p><p class="text-red-600 font-bold text-xs sm:text-sm">Number is outside of configured Start/End range.</p>`;
+            }
+        }
+
+        function shareToWhatsApp() {
+            if (topGapsData.length === 0) {
+                showToast("No gaps available to share.", "error");
+                return;
+            }
+            let message = "📊 *Available Design Blocks*\n\n";
+            message += "Here are the largest open sequences for new designs:\n\n";
+            let shareGaps = [...topGapsData].sort((a,b) => b.length - a.length).slice(0, 5);
+            shareGaps.forEach((g) => { message += `✅ *${g.start} to ${g.end}* (${g.length} slots)\n`; });
+            message += "\n_Sent from Design Tracker_";
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function copyRow(rowElement, start, end) {
+            const textToCopy = `Available Gap: ${start} to ${end}`;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy);
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { document.execCommand('copy'); } catch (err) {}
+                document.body.removeChild(textArea);
+            }
+
+            showToast(`Copied Gap: ${start} to ${end}`);
+            const originalBg = rowElement.className;
+            rowElement.className = "bg-green-100 transition-colors duration-200";
+            setTimeout(() => { rowElement.className = originalBg; }, 400);
+        }
+
+        function exportCSV() {
+            if (segmentsData.length === 0) { showToast("No data to export!", "error"); return; }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Start Number,End Number,Length,Status\n";
+            let allGaps = segmentsData.filter(s => s.status === 'Unused' && s.length > 0);
+            allGaps.forEach(g => { csvContent += `${g.start},${g.end},${g.length},Unused\n`; });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `design_gaps_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function changeZoom(amount) { zoomLevel = Math.max(1, Math.min(20, zoomLevel + amount)); applyZoom(); }
+        function resetZoom() { zoomLevel = 1; applyZoom(); }
+        function applyZoom() {
+            document.getElementById('zoom-label').innerText = zoomLevel + 'x';
+            elBar.style.minWidth = (zoomLevel * 100) + '%';
+            document.getElementById('axis-labels').style.minWidth = (zoomLevel * 100) + '%';
+            if(zoomLevel > 1) { document.getElementById('label-scroll').classList.remove('hidden'); } 
+            else { document.getElementById('label-scroll').classList.add('hidden'); }
+        }
+
+        const tooltip = document.getElementById('tooltip');
+        function showTooltip(e, segment) {
+            tooltip.style.opacity = '1';
+            tooltip.style.left = e.clientX + 'px';
+            tooltip.style.top = e.clientY + 'px';
+            let colorClass = 'bg-orange-400';
+            if (segment.status === 'Used') colorClass = 'bg-blue-400';
+            else if (segment.isTopGap) colorClass = 'bg-emerald-400';
+
+            document.getElementById('tooltip-color').className = `w-3 h-3 rounded-full shadow-inner ${colorClass}`;
+            document.getElementById('tooltip-status').innerText = (segment.isTopGap ? 'TOP GAP' : segment.status) + ' BLOCK';
+            document.getElementById('tooltip-range').innerText = `${segment.start} - ${segment.end}`;
+            document.getElementById('tooltip-length').innerText = `${segment.length} nums`;
+        }
+        function hideTooltip() { tooltip.style.opacity = '0'; }
+    </script>
+</body>
+</html>
