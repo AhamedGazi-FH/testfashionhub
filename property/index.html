@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hanafi Mirath Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .radio-group label { border: 2px solid #e5e7eb; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease-in-out; text-align: center; }
+        .radio-group input[type="radio"]:checked + label { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; font-weight: 600; }
+        .input-group { margin-top: 1rem; padding-left: 1rem; border-left: 3px solid #ddd; }
+        .disabled-section { opacity: 0.5; pointer-events: none; background-color: #f9fafb; border-radius: 0.5rem; }
+        
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body > *:not(#print-report-container) {
+                display: none;
+            }
+            #print-report-container {
+                display: block !important;
+                visibility: visible;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                font-size: 12pt;
+            }
+            .print-card {
+                border: 1px solid #ccc;
+                border-radius: 0;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="hanafi-mirath-app-container" class="no-print">
+        <div class="container mx-auto max-w-2xl p-4 md:p-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+
+                <div id="progress-bar" class="mb-8">
+                    <div class="flex justify-between mb-1">
+                        <span id="step-1-text" class="text-base font-medium text-indigo-700">Deceased Info</span>
+                        <span id="step-2-text" class="text-base font-medium text-gray-500">Heirs</span>
+                        <span id="step-3-text" class="text-base font-medium text-gray-500">Results</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-indicator" class="bg-indigo-600 h-2.5 rounded-full" style="width: 25%"></div>
+                    </div>
+                </div>
+
+                <!-- Screen 1: Initial Setup -->
+                <div id="screen-1" class="screen active">
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Marne Waale ki Jaankari</h1>
+                        <p class="text-gray-500 mt-2">Deceased's Information & Estate</p>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="deceasedName" class="block text-sm font-medium text-gray-700">Marne Waale Ka Naam</label>
+                            <input type="text" id="deceasedName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., Yasin">
+                        </div>
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Marne Waale Ka Gender</label>
+                            <div class="grid grid-cols-2 gap-4 mt-2 radio-group">
+                               <input type="radio" name="deceasedGender" id="gender-male" value="male" class="hidden" checked><label for="gender-male" id="label-gender-male">Male (Aadmi)</label>
+                               <input type="radio" name="deceasedGender" id="gender-female" value="female" class="hidden"><label for="gender-female" id="label-gender-female">Female (Aurat)</label>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div>
+                            <label for="totalValue" class="block text-sm font-medium text-gray-700">Kul Property Ki Keemat (Net Estate)</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center"><span class="text-gray-500 sm:text-sm">₹</span></div>
+                                <input type="number" id="totalValue" class="block w-full rounded-md border-gray-300 pl-7 pr-12 py-3 focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="debtValue" class="block text-sm font-medium text-gray-700">Qarz / Funeral Kharcha</label>
+                             <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center"><span class="text-gray-500 sm:text-sm">₹</span></div>
+                                <input type="number" id="debtValue" class="block w-full rounded-md border-gray-300 pl-7 pr-12 py-3 focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="willValue" class="block text-sm font-medium text-gray-700">Wasiyat (Will) Ki Raqam</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center"><span class="text-gray-500 sm:text-sm">₹</span></div>
+                                <input type="number" id="willValue" class="block w-full rounded-md border-gray-300 pl-7 pr-12 py-3 focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00">
+                            </div>
+                             <p id="will-warning" class="text-red-500 text-sm mt-1 hidden">Wasiyat net property ke 1/3 se zyada nahi ho sakti.</p>
+                        </div>
+                    </div>
+                    <div class="mt-10">
+                        <button type="button" id="btn-to-screen-2" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Aage Badhein &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Screen 2: Heirs Selection -->
+                <div id="screen-2" class="screen">
+                     <div class="text-center mb-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Waraso Ki Jaankari</h1>
+                        <p class="text-gray-500 mt-2">Heir's Information</p>
+                    </div>
+                    <div class="space-y-8">
+                        <!-- Spouse -->
+                        <div class="p-4 border rounded-lg">
+                            <p id="spouse-question" class="font-semibold text-lg">Q1: Biwi Zinda Hain? (Wife Alive?)</p>
+                            <div class="grid grid-cols-2 gap-4 mt-4 radio-group">
+                               <input type="radio" name="spouse" id="spouse-yes" value="yes" class="hidden"><label for="spouse-yes">Yes</label>
+                               <input type="radio" name="spouse" id="spouse-no" value="no" class="hidden" checked><label for="spouse-no">No</label>
+                            </div>
+                            <div id="spouse-count-section" class="input-group hidden">
+                                 <label for="wives" class="block text-sm font-medium text-gray-700">Kitni Biwiyan?</label>
+                                 <select id="wives" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+                            </div>
+                        </div>
+                        
+                        <!-- Children -->
+                        <div class="p-4 border rounded-lg">
+                            <p class="font-semibold text-lg">Q2: Aulad Zinda Hai? (Children Alive?)</p>
+                            <div class="grid grid-cols-2 gap-4 mt-4 radio-group">
+                                <input type="radio" name="children" id="children-yes" value="yes" class="hidden"><label for="children-yes">Yes</label>
+                                <input type="radio" name="children" id="children-no" value="no" class="hidden" checked><label for="children-no">No</label>
+                            </div>
+                            <div id="children-count-section" class="input-group hidden space-y-4">
+                                <div>
+                                    <label for="sons" class="block text-sm font-medium text-gray-700">Kitne Bete? (Sons)</label>
+                                    <input type="number" id="sons" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="daughters" class="block text-sm font-medium text-gray-700">Kitni Betiyan? (Daughters)</label>
+                                    <input type="number" id="daughters" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parents -->
+                        <div class="p-4 border rounded-lg">
+                            <p class="font-semibold text-lg">Q3: Maa-Baap Zinda Hain? (Parents Alive?)</p>
+                             <div class="grid grid-cols-2 gap-4 mt-4 radio-group">
+                                <input type="radio" name="parents" id="parents-both" value="both" class="hidden"><label for="parents-both">Dono Zinda</label>
+                                <input type="radio" name="parents" id="parents-mother" value="mother" class="hidden"><label for="parents-mother">Sirf Maa</label>
+                                <input type="radio" name="parents" id="parents-father" value="father" class="hidden"><label for="parents-father">Sirf Baap</label>
+                                <input type="radio" name="parents" id="parents-none" value="none" class="hidden" checked><label for="parents-none">Dono Nahi</label>
+                             </div>
+                        </div>
+
+                        <!-- Grandchildren -->
+                        <div id="grandchildren-section" class="p-4 border rounded-lg">
+                            <p class="font-semibold text-lg">Q4: Potey/Potiyan Zinda Hain? (Grandchildren from Son's side)</p>
+                            <div class="grid grid-cols-2 gap-4 mt-4 radio-group">
+                                 <input type="radio" name="grandchildren" id="grandchildren-yes" value="yes" class="hidden"><label for="grandchildren-yes">Yes</label>
+                                <input type="radio" name="grandchildren" id="grandchildren-no" value="no" class="hidden" checked><label for="grandchildren-no">No</label>
+                            </div>
+                            <div id="grandchildren-count-section" class="input-group hidden space-y-4">
+                                <div>
+                                    <label for="grandsons" class="block text-sm font-medium text-gray-700">Kitne Potey? (Sons's Sons)</label>
+                                    <input type="number" id="grandsons" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="granddaughters" class="block text-sm font-medium text-gray-700">Kitni Potiyan? (Son's Daughters)</label>
+                                    <input type="number" id="granddaughters" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grandparents -->
+                        <div id="grandparents-section" class="p-4 border rounded-lg">
+                            <p class="font-semibold text-lg">Q5: Dada/Dadi Zinda Hain? (Paternal Grandparents)</p>
+                            <div class="grid grid-cols-2 gap-4 mt-4 radio-group">
+                                 <input type="radio" name="paternal-grandparents" id="pgp-yes" value="yes" class="hidden"><label for="pgp-yes">Yes</label>
+                                <input type="radio" name="paternal-grandparents" id="pgp-no" value="no" class="hidden" checked><label for="pgp-no">No</label>
+                            </div>
+                             <div id="grandparents-count-section" class="input-group hidden">
+                                <div class="flex items-center space-x-4">
+                                    <input id="paternal_grandfather" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><label for="paternal_grandfather">Dada (Paternal Grandfather)</label>
+                                </div>
+                                 <div class="flex items-center space-x-4 mt-2">
+                                    <input id="paternal_grandmother" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><label for="paternal_grandmother">Dadi (Paternal Grandmother)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                         <!-- Siblings -->
+                        <div id="siblings-section" class="p-4 border rounded-lg">
+                            <p class="font-semibold text-lg">Q6: Bhai/Behen Zinda Hain? (Siblings Alive?)</p>
+                            <div class="grid grid-cols-2 gap-4 mt-4 radio-group">
+                                 <input type="radio" name="siblings" id="siblings-yes" value="yes" class="hidden"><label for="siblings-yes">Yes</label>
+                                <input type="radio" name="siblings" id="siblings-no" value="no" class="hidden" checked><label for="siblings-no">No</label>
+                            </div>
+                            <div id="siblings-count-section" class="input-group hidden space-y-4">
+                                <div>
+                                    <label for="full_brothers" class="block text-sm font-medium text-gray-700">Haqeeqi Bhai (Full Brothers)</label>
+                                    <input type="number" id="full_brothers" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="full_sisters" class="block text-sm font-medium text-gray-700">Haqeeqi Behen (Full Sisters)</label>
+                                    <input type="number" id="full_sisters" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                 <div>
+                                    <label for="paternal_brothers" class="block text-sm font-medium text-gray-700">Allati Bhai (Paternal Brothers)</label>
+                                    <input type="number" id="paternal_brothers" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="paternal_sisters" class="block text-sm font-medium text-gray-700">Allati Behen (Paternal Sisters)</label>
+                                    <input type="number" id="paternal_sisters" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                 <div>
+                                    <label for="maternal_siblings" class="block text-sm font-medium text-gray-700">Akhyafi Bhai/Behen (Maternal Siblings)</label>
+                                    <input type="number" id="maternal_siblings" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 flex space-x-4">
+                         <button type="button" id="btn-back-to-screen-1" class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">&larr; Peeche</button>
+                        <button type="button" id="btn-calculate" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Calculate Karein</button>
+                    </div>
+                </div>
+
+                <!-- Screen 3: Results -->
+                <div id="screen-3" class="screen">
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Calculation Result</h1>
+                        <p class="text-gray-500 mt-2">Final Report for <span id="reportDeceasedName" class="font-semibold"></span></p>
+                    </div>
+                    <div class="bg-indigo-50 rounded-lg p-4 mb-6 text-center">
+                        <p class="text-sm font-medium text-indigo-800">Kul Taqseem Hone Waali Raqam</p>
+                        <p id="netPayableValue" class="text-3xl font-bold text-indigo-900">₹ 0.00</p>
+                    </div>
+                    <div id="results-container" class="space-y-4"></div>
+                    <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+                        <p class="font-bold">Zaroori Hidayat (Disclaimer)</p>
+                        <p class="text-sm">Yeh calculation sirf Fiqh (religious) ke hisaab se hai. Final faisle ke liye Maahir-e-Qanoon (Legal Expert) ki salah zaroori hai.</p>
+                    </div>
+                    <div class="mt-10 flex space-x-4">
+                         <button type="button" id="btn-back-to-screen-2" class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">&larr; Wapas Edit Karein</button>
+                        <button type="button" id="btn-print" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">PDF Report Banao</button>
+                    </div>
+                     <div class="mt-4">
+                         <button type="button" id="btn-start-over" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Naya Calculation</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden printable report -->
+    <div id="print-report-container" class="hidden p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold">Hanafi Mirath Assistant - Calculation Report</h1>
+            <p id="report-date" class="text-gray-500"></p>
+        </div>
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold border-b pb-2 mb-4">Input Summary</h2>
+            <div id="report-inputs" class="space-y-2"></div>
+        </div>
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold border-b pb-2 mb-4">Exclusion Logic (Hajb)</h2>
+            <div id="report-exclusions" class="space-y-1"></div>
+        </div>
+        <div>
+            <h2 class="text-2xl font-semibold border-b pb-2 mb-4">Final Distribution</h2>
+            <div class="bg-gray-100 rounded-lg p-4 mb-6 text-center">
+                <p class="font-medium">Kul Taqseem Hone Waali Raqam</p>
+                <p id="report-netPayableValue" class="text-3xl font-bold">₹ 0.00</p>
+            </div>
+            <div id="report-results" class="space-y-4"></div>
+        </div>
+        <div class="mt-8 pt-4 border-t">
+             <p class="font-bold">Disclaimer:</p>
+             <p class="text-sm">This calculation is for educational and informational purposes based on Hanafi Fiqh. It is not a substitute for legal advice. Consult a qualified legal expert for final decisions.</p>
+        </div>
+    </div>
+
+    <script id="hanafi-mirath-script">
+    function initializeMirathApp() {
+        try {
+            'use strict';
+            let netEstate = 0;
+            let reportData = {};
+            const progressBar = document.getElementById('progress-indicator');
+            const stepTexts = { 1: document.getElementById('step-1-text'), 2: document.getElementById('step-2-text'), 3: document.getElementById('step-3-text') };
+            
+            function updateProgress(step) {
+                const stepNames = { 1: "Deceased Info", 2: "Heirs", 3: "Results" };
+                Object.keys(stepTexts).forEach(key => {
+                    stepTexts[key].classList.remove('text-indigo-700');
+                    stepTexts[key].classList.add('text-gray-500');
+                    stepTexts[key].innerText = stepNames[key];
+                });
+
+                if (step === 1) {
+                    progressBar.style.width = '25%';
+                    stepTexts[1].classList.add('text-indigo-700');
+                } else if (step === 2) {
+                    progressBar.style.width = '65%';
+                    stepTexts[2].classList.add('text-indigo-700');
+                } else {
+                    progressBar.style.width = '100%';
+                    stepTexts[3].classList.add('text-indigo-700');
+                }
+            }
+
+            function goToScreen1() {
+                document.getElementById('screen-1').classList.add('active');
+                document.getElementById('screen-2').classList.remove('active');
+                document.getElementById('screen-3').classList.remove('active');
+                updateProgress(1);
+            }
+
+            function goToScreen2(isReturning = false) {
+                if (!isReturning) {
+                    const totalValue = parseFloat(document.getElementById('totalValue').value) || 0;
+                    const debtValue = parseFloat(document.getElementById('debtValue').value) || 0;
+                    let willValue = parseFloat(document.getElementById('willValue').value) || 0;
+                    reportData.estate = { totalValue, debtValue, initialWill: willValue };
+                    if (totalValue <= debtValue) {
+                        alert('Property ki keemat Qarz se zyada honi chahiye.');
+                        return;
+                    }
+                    netEstate = totalValue - debtValue;
+                    const maxWill = netEstate / 3;
+                    const willWarning = document.getElementById('will-warning');
+                    if (willValue > maxWill) {
+                        willValue = maxWill;
+                        willWarning.innerText = 'Wasiyat net property (' + netEstate.toFixed(2) + ') ke 1/3 se zyada nahi ho sakti. Isliye ' + willValue.toFixed(2) + ' consider kiya jayega.';
+                        willWarning.classList.remove('hidden');
+                    } else {
+                        willWarning.classList.add('hidden');
+                    }
+                    reportData.estate.adjustedWill = willValue;
+                    netEstate -= willValue;
+                }
+                document.getElementById('screen-1').classList.remove('active');
+                document.getElementById('screen-2').classList.add('active');
+                document.getElementById('screen-3').classList.remove('active');
+                updateProgress(2);
+            }
+
+            function calculateAndGoToScreen3() {
+                calculateShares();
+                document.getElementById('screen-1').classList.remove('active');
+                document.getElementById('screen-2').classList.remove('active');
+                document.getElementById('screen-3').classList.add('active');
+                document.getElementById('reportDeceasedName').innerText = document.getElementById('deceasedName').value || 'Deceased';
+                updateProgress(3);
+            }
+
+            function startOver() { window.location.reload(); }
+            function printReport() { window.print(); }
+
+            function toggleSpouseCount(show) { document.getElementById('spouse-count-section').classList.toggle('hidden', !show); }
+            function toggleGrandchildrenCount(show) { document.getElementById('grandchildren-count-section').classList.toggle('hidden', !show); }
+            function toggleGrandparentsCount(show) { document.getElementById('grandparents-count-section').classList.toggle('hidden', !show); }
+            function toggleSiblingsCount(show) { document.getElementById('siblings-count-section').classList.toggle('hidden', !show); }
+            
+            function updateDynamicLabels(gender) {
+                const spouseQuestion = document.getElementById('spouse-question');
+                const spouseCountSection = document.getElementById('spouse-count-section');
+                if (gender === 'male') {
+                    spouseQuestion.innerText = "Q1: Biwi Zinda Hain? (Wife Alive?)";
+                    spouseCountSection.classList.remove('hidden');
+                } else {
+                    spouseQuestion.innerText = "Q1: Shauhar Zinda Hai? (Husband Alive?)";
+                    spouseCountSection.classList.add('hidden');
+                }
+            }
+
+            function updateUIExclusions() {
+                const sons = parseInt(document.getElementById('sons').value) || 0;
+                const hasChildren = document.querySelector('input[name="children"]:checked').value === 'yes';
+                const hasSon = hasChildren && sons > 0;
+                
+                const parentStatus = document.querySelector('input[name="parents"]:checked').value;
+                const fatherPresent = (parentStatus === 'both' || parentStatus === 'father');
+                const motherPresent = (parentStatus === 'both' || parentStatus === 'mother');
+
+                document.getElementById('grandchildren-section').classList.toggle('disabled-section', hasSon);
+                document.getElementById('siblings-section').classList.toggle('disabled-section', hasSon || fatherPresent);
+                document.getElementById('grandparents-section').classList.toggle('disabled-section', fatherPresent);
+                
+                const paternalGrandfatherCheckbox = document.getElementById('paternal_grandfather').closest('div');
+                paternalGrandfatherCheckbox.classList.toggle('disabled-section', hasSon);
+
+                const paternalGrandmotherCheckbox = document.getElementById('paternal_grandmother').closest('div');
+                paternalGrandmotherCheckbox.classList.toggle('disabled-section', motherPresent);
+            }
+
+            function Fraction(numerator, denominator = 1) { return { num: numerator, den: denominator, toDecimal: function() { return this.num / this.den; }, toString: function() { return '' + this.num + '/' + this.den; } }; }
+            const add = (f1, f2) => Fraction(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const sub = (f1, f2) => Fraction(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const mul = (f1, f2) => Fraction(f1.num * f2.num, f1.den * f2.den);
+            const div = (f1, f2) => Fraction(f1.num * f2.den, f1.den * f2.num);
+            const simplify = (f) => { if (f.den === 0) return f; const gcd = (a, b) => b === 0 ? a : gcd(b, a % b); const common = gcd(f.num, f.den); return Fraction(f.num / common, f.den / common); }
+
+            function collectInputs() {
+                reportData.heirInputs = {
+                    deceasedName: document.getElementById('deceasedName').value || 'N/A',
+                    deceasedGender: document.querySelector('input[name="deceasedGender"]:checked').value,
+                    spouse: document.querySelector('input[name="spouse"]:checked').value === 'yes' ? 'Yes' : 'No',
+                    children: document.querySelector('input[name="children"]:checked').value === 'yes' ? 'Yes (Sons: ' + document.getElementById('sons').value + ', Daughters: ' + document.getElementById('daughters').value + ')' : 'No',
+                    parents: document.querySelector('input[name="parents"]:checked').value,
+                    grandchildren: document.querySelector('input[name="grandchildren"]:checked').value === 'yes' ? 'Yes (Grandsons: ' + document.getElementById('grandsons').value + ', Granddaughters: ' + document.getElementById('granddaughters').value + ')' : 'No',
+                    paternalGrandparents: document.querySelector('input[name="paternal-grandparents"]:checked').value === 'yes' ? 'Yes (Grandfather: ' + document.getElementById('paternal_grandfather').checked + ', Grandmother: ' + document.getElementById('paternal_grandmother').checked + ')' : 'No',
+                    siblings: document.querySelector('input[name="siblings"]:checked').value === 'yes' ? 'Yes' : 'No',
+                };
+                if (reportData.heirInputs.siblings === 'Yes') {
+                    reportData.heirInputs.siblingDetails = 'Full Brothers: ' + document.getElementById('full_brothers').value + ', Full Sisters: ' + document.getElementById('full_sisters').value + ', Paternal Brothers: ' + document.getElementById('paternal_brothers').value + ', Paternal Sisters: ' + document.getElementById('paternal_sisters').value + ', Maternal Siblings: ' + document.getElementById('maternal_siblings').value;
+                }
+            }
+
+            function calculateShares() {
+                collectInputs();
+                reportData.exclusions = [];
+                const deceasedGender = document.querySelector('input[name="deceasedGender"]:checked').value;
+                const hasSpouse = document.querySelector('input[name="spouse"]:checked').value === 'yes';
+                const wifeCount = parseInt(document.getElementById('wives').value) || 1;
+                const sons = parseInt(document.getElementById('sons').value) || 0;
+                const daughters = parseInt(document.getElementById('daughters').value) || 0;
+                const parentStatus = document.querySelector('input[name="parents"]:checked').value;
+                let mother = parentStatus === 'both' || parentStatus === 'mother';
+                let father = parentStatus === 'both' || parentStatus === 'father';
+                let hasGrandchildren = document.querySelector('input[name="grandchildren"]:checked').value === 'yes';
+                let grandsons = hasGrandchildren ? (parseInt(document.getElementById('grandsons').value) || 0) : 0;
+                let granddaughters = hasGrandchildren ? (parseInt(document.getElementById('granddaughters').value) || 0) : 0;
+                let hasPGP = document.querySelector('input[name="paternal-grandparents"]:checked').value === 'yes';
+                let paternalGrandfather = hasPGP && document.getElementById('paternal_grandfather').checked;
+                let paternalGrandmother = hasPGP && document.getElementById('paternal_grandmother').checked;
+                let hasSiblings = document.querySelector('input[name="siblings"]:checked').value === 'yes';
+                let fullBrothers = hasSiblings ? (parseInt(document.getElementById('full_brothers').value) || 0) : 0;
+                let fullSisters = hasSiblings ? (parseInt(document.getElementById('full_sisters').value) || 0) : 0;
+                let maternalSiblings = hasSiblings ? (parseInt(document.getElementById('maternal_siblings').value) || 0) : 0;
+                
+                let heirs = [];
+                // --- HAJB LOGIC (EXCLUSION) ---
+                if (sons > 0) { 
+                    if(grandsons > 0 || granddaughters > 0) reportData.exclusions.push("Grandchildren are excluded because a Son is alive.");
+                    if(fullBrothers > 0 || fullSisters > 0 || maternalSiblings > 0) reportData.exclusions.push("All Siblings are excluded because a Son is alive.");
+                    if(paternalGrandfather) reportData.exclusions.push("Paternal Grandfather is excluded because a Son is alive.");
+                    grandsons = 0; granddaughters = 0; fullBrothers = 0; fullSisters = 0; maternalSiblings = 0; paternalGrandfather = false;
+                } else if (grandsons > 0) {
+                    if(fullBrothers > 0 || fullSisters > 0 || maternalSiblings > 0) reportData.exclusions.push("All Siblings are excluded because a Son's Son (Pota) is alive.");
+                    if(paternalGrandfather) reportData.exclusions.push("Paternal Grandfather is excluded because a Son's Son is alive.");
+                    fullBrothers = 0; fullSisters = 0; maternalSiblings = 0; paternalGrandfather = false;
+                }
+                if (father) { 
+                    if(paternalGrandfather) reportData.exclusions.push("Paternal Grandfather is excluded because the Father is alive.");
+                    if(fullBrothers > 0 || fullSisters > 0 || maternalSiblings > 0) reportData.exclusions.push("All Siblings are excluded because the Father is alive.");
+                    paternalGrandfather = false; fullBrothers = 0; fullSisters = 0; maternalSiblings = 0;
+                }
+                if (mother) { 
+                    if(paternalGrandmother) reportData.exclusions.push("Paternal Grandmother is excluded because the Mother is alive.");
+                    paternalGrandmother = false;
+                }
+                if (fullBrothers > 0) { reportData.exclusions.push("Paternal Siblings are excluded because Full Brothers are alive."); }
+                
+                const isAnyDescendant = sons > 0 || daughters > 0 || grandsons > 0 || granddaughters > 0;
+                
+                // --- ASSIGN FIXED SHARES (FARAID) ---
+                if (hasSpouse) {
+                    if (deceasedGender === 'male') {
+                        const share = isAnyDescendant ? Fraction(1, 8) : Fraction(1, 4);
+                        heirs.push({ name: 'Biwi (Wife)', count: wifeCount, fixedShare: share, asabah: false, justification: 'Aulad ' + (isAnyDescendant ? 'hone' : 'na hone') + ' ke kaaran.' });
+                    } else {
+                        const share = isAnyDescendant ? Fraction(1, 4) : Fraction(1, 2);
+                        heirs.push({ name: 'Shauhar (Husband)', count: 1, fixedShare: share, asabah: false, justification: 'Aulad ' + (isAnyDescendant ? 'hone' : 'na hone') + ' ke kaaran.' });
+                    }
+                }
+                if (mother) { const isSiblingPresent = fullBrothers > 0 || fullSisters > 0 || maternalSiblings > 0; const share = (isAnyDescendant || (fullBrothers + fullSisters + maternalSiblings >= 2)) ? Fraction(1, 6) : Fraction(1, 3); heirs.push({ name: 'Maa (Mother)', count: 1, fixedShare: share, asabah: false, justification: 'Aulad ya 2+ Bhai/Behen ' + (isAnyDescendant || isSiblingPresent > 1 ? 'hone' : 'na hone') + ' ke kaaran.' }); }
+                if (father) { heirs.push({ name: 'Baap (Father)', count: 1, fixedShare: isAnyDescendant ? Fraction(1, 6) : Fraction(0, 1), asabah: true, justification: 'Aulad hone par 1/6 + Asabah, warna sirf Asabah.' }); }
+                if (paternalGrandfather) { heirs.push({ name: 'Dada (Paternal Grandfather)', count: 1, fixedShare: isAnyDescendant ? Fraction(1, 6) : Fraction(0, 1), asabah: true, justification: 'Baap na hone ki wajah se.' }); }
+                if (paternalGrandmother) { heirs.push({ name: 'Dadi (Paternal Grandmother)', count: 1, fixedShare: Fraction(1, 6), asabah: false, justification: 'Maa na hone ki wajah se.' }); }
+                if (sons > 0 || daughters > 0) { if (sons === 0) { const share = (daughters === 1) ? Fraction(1, 2) : Fraction(2, 3); heirs.push({ name: 'Beti(yan)', count: daughters, fixedShare: share, asabah: false, justification: 'Sirf Betiyan hone ke kaaran.' }); } else { if (sons > 0) heirs.push({ name: 'Bete', count: sons, fixedShare: Fraction(0, 1), asabah: true, isAsabahGroup: 'children', asabahParts: 2 }); if (daughters > 0) heirs.push({ name: 'Betiyan', count: daughters, fixedShare: Fraction(0, 1), asabah: true, isAsabahGroup: 'children', asabahParts: 1, justification: 'Bete ke saath Asabah.' }); } }
+                else if (grandsons > 0 || granddaughters > 0) { if (grandsons === 0) { if (daughters === 0) { const share = (granddaughters === 1) ? Fraction(1, 2) : Fraction(2, 3); heirs.push({ name: 'Poti(yan)', count: granddaughters, fixedShare: share, asabah: false, justification: 'Sirf Potiyan hone ke kaaran.' }); } else if (daughters === 1) { heirs.push({ name: 'Poti(yan)', count: granddaughters, fixedShare: Fraction(1, 6), asabah: false, justification: 'Ek Beti ke saath 2/3 hissa pura karne ke liye (Takmila).' }); } } else { if (grandsons > 0) heirs.push({ name: 'Potey', count: grandsons, fixedShare: Fraction(0, 1), asabah: true, isAsabahGroup: 'grandchildren', asabahParts: 2 }); if (granddaughters > 0) heirs.push({ name: 'Potiyan', count: granddaughters, fixedShare: Fraction(0, 1), asabah: true, isAsabahGroup: 'grandchildren', asabahParts: 1, justification: 'Pote ke saath Asabah.' }); } }
+                if (maternalSiblings > 0) { const share = maternalSiblings === 1 ? Fraction(1,6) : Fraction(1,3); heirs.push({ name: 'Akhyafi Bhai/Behen', count: maternalSiblings, fixedShare: share, asabah: false, justification: '' + maternalSiblings + ' hone ke kaaran.'}); } 
+                if (fullBrothers > 0 || fullSisters > 0) { if (fullBrothers > 0) { heirs.push({ name: 'Haqeeqi Bhai', count: fullBrothers, fixedShare: Fraction(0, 1), asabah: true, isAsabahGroup: 'siblings', asabahParts: 2 }); if (fullSisters > 0) heirs.push({ name: 'Haqeeqi Behen', count: fullSisters, fixedShare: Fraction(0, 1), asabah: true, isAsabahGroup: 'siblings', asabahParts: 1, justification: 'Bhai ke saath Asabah.' }); } else { if (!isAnyDescendant) { const share = fullSisters === 1 ? Fraction(1, 2) : Fraction(2, 3); heirs.push({ name: 'Haqeeqi Behen', count: fullSisters, fixedShare: share, asabah: false }); } else { heirs.push({ name: 'Haqeeqi Behen', count: fullSisters, fixedShare: Fraction(0, 1), asabah: true, asabahParts: 1, justification: 'Beti/Poti ke saath Asabah.' }); } } }
+                
+                let totalFixedShare = Fraction(0, 1);
+                heirs.forEach(h => { if(h.fixedShare) totalFixedShare = add(totalFixedShare, h.fixedShare) });
+                let residue = sub(Fraction(1, 1), totalFixedShare);
+                
+                heirs.forEach(h => h.finalShare = h.fixedShare || Fraction(0, 1));
+                
+                // --- CORRECTED ASABAH DISTRIBUTION ---
+                const distributeResidue = (groupName, residueFraction) => {
+                    const group = heirs.filter(h => h.isAsabahGroup === groupName);
+                    if(group.length > 0 && residueFraction.num > 0) {
+                        let totalParts = 0;
+                        group.forEach(h => totalParts += h.asabahParts * h.count);
+                        if(totalParts > 0){
+                            group.forEach(h => {
+                                const shareOfResidue = mul(residueFraction, Fraction(h.asabahParts * h.count, totalParts));
+                                h.finalShare = add(h.finalShare, shareOfResidue);
+                            });
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+
+                let residueDistributed = false;
+                if(!residueDistributed) residueDistributed = distributeResidue('children', residue);
+                if(!residueDistributed) residueDistributed = distributeResidue('grandchildren', residue);
+
+                let asabahAlone = heirs.filter(h => h.asabah && !h.isAsabahGroup);
+                if(asabahAlone.length > 0 && residue.num > 0){
+                   asabahAlone.forEach(h => h.finalShare = add(h.finalShare, residue));
+                } else if (!residueDistributed) {
+                    distributeResidue('siblings', residue);
+                }
+
+                // Awwal and Radd
+                let finalTotal = Fraction(0,1);
+                heirs.forEach(h => finalTotal = add(finalTotal, h.finalShare));
+                if (finalTotal.num > finalTotal.den) { // AWWAL
+                    heirs.forEach(h => { if (h.finalShare.num > 0) { h.finalShare = div(h.finalShare, finalTotal); h.justification = (h.justification || '') + ' [Awwal Case]' } });
+                } else if (finalTotal.num < finalTotal.den && !residueDistributed && asabahAlone.length === 0) { // RADD
+                    const residueForRadd = sub(Fraction(1,1), finalTotal);
+                    let raddHeirs = heirs.filter(h => h.name.indexOf('Biwi') === -1 && h.name.indexOf('Shauhar') === -1 && h.fixedShare && h.fixedShare.num > 0);
+                    if (raddHeirs.length > 0) {
+                        let raddHeirsTotalShare = Fraction(0, 1);
+                        raddHeirs.forEach(h => raddHeirsTotalShare = add(raddHeirsTotalShare, h.fixedShare));
+                        if(raddHeirsTotalShare.num > 0){ 
+                            raddHeirs.forEach(h => { 
+                                const raddPortion = mul(residueForRadd, div(h.fixedShare, raddHeirsTotalShare)); 
+                                h.finalShare = add(h.finalShare, raddPortion); 
+                                h.justification = (h.justification || '') + ' [Radd Case]' 
+                            }); 
+                        }
+                    }
+                }
+
+                reportData.finalHeirs = heirs;
+                displayResults();
+                populateReport();
+            }
+
+            function displayResults() {
+                const resultsContainer = document.getElementById('results-container');
+                resultsContainer.innerHTML = '';
+                document.getElementById('netPayableValue').innerText = '₹ ' + netEstate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                reportData.finalHeirs.forEach(h => {
+                    if (!h.finalShare || h.finalShare.toDecimal() <= 0) return;
+                    const simplified = simplify(h.finalShare);
+                    const finalAmount = netEstate * simplified.toDecimal();
+                    let perPersonText = (h.count > 1) ? '<p class="text-sm text-gray-500 mt-1">Har ek ka hissa: ₹ ' + (finalAmount / h.count).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' : '';
+                    resultsContainer.innerHTML += '<div class="bg-white border rounded-lg p-4 shadow-sm"><div class="flex justify-between items-start"><div><p class="font-bold text-lg text-indigo-800">' + h.name + ' (' + h.count + ')</p><p class="text-sm text-gray-600">' + (h.justification || '') + '</p></div><div class="text-right"><p class="text-xl font-semibold">' + simplified.toString() + '</p><p class="text-sm text-gray-500">Hissa</p></div></div><hr class="my-3"><div class="text-right"><p class="text-2xl font-bold text-gray-900">₹ ' + finalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' + perPersonText + '</div></div>';
+                });
+                if (resultsContainer.innerHTML === '') {
+                    resultsContainer.innerHTML = '<div class="text-center p-8 bg-gray-100 rounded-lg"><p class="text-lg font-semibold text-gray-700">Koi Qurani Waris Nahi Hai.</p><p class="text-gray-500 mt-2">Is case mein property Dhawi al-Arham ya Baitul Maal mein ja sakti hai. Legal expert se mashwara karein.</p></div>';
+                }
+            }
+
+            function populateReport() {
+                document.getElementById('report-date').innerText = 'Generated on: ' + new Date().toLocaleString('en-IN');
+                document.getElementById('report-inputs').innerHTML = '<p><strong>Deceased:</strong> ' + reportData.heirInputs.deceasedName + ' ('+ reportData.heirInputs.deceasedGender +')</p><hr class="my-2"><p><strong>Total Property:</strong> ' + reportData.estate.totalValue.toLocaleString('en-IN') + '</p><p><strong>Debts & Expenses:</strong> ' + reportData.estate.debtValue.toLocaleString('en-IN') + '</p><p><strong>Will (Initial):</strong> ' + reportData.estate.initialWill.toLocaleString('en-IN') + '</p><p><strong>Will (Adjusted to 1/3):</strong> ' + reportData.estate.adjustedWill.toLocaleString('en-IN') + '</p><hr class="my-2"><p><strong>Spouse:</strong> ' + reportData.heirInputs.spouse + '</p><p><strong>Children:</strong> ' + reportData.heirInputs.children + '</p><p><strong>Parents:</strong> ' + reportData.heirInputs.parents + '</p><p><strong>Grandchildren:</strong> ' + reportData.heirInputs.grandchildren + '</p><p><strong>Paternal Grandparents:</strong> ' + reportData.heirInputs.paternalGrandparents + '</p><p><strong>Siblings:</strong> ' + reportData.heirInputs.siblings + '</p>' + (reportData.heirInputs.siblingDetails ? '<p class="pl-4 text-sm"><strong>Details:</strong> ' + reportData.heirInputs.siblingDetails + '</p>' : '');
+                const exclusionsContainer = document.getElementById('report-exclusions');
+                exclusionsContainer.innerHTML = '';
+                if (reportData.exclusions.length > 0) {
+                    reportData.exclusions.forEach(ex => { exclusionsContainer.innerHTML += '<p class="text-red-600">- ' + ex + '</p>'; });
+                } else { exclusionsContainer.innerHTML = '<p>No primary heirs were excluded based on Hajb rules.</p>'; }
+                const reportResultsContainer = document.getElementById('report-results');
+                reportResultsContainer.innerHTML = '';
+                document.getElementById('report-netPayableValue').innerText = '₹ ' + netEstate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                reportData.finalHeirs.forEach(h => {
+                    if (!h.finalShare || h.finalShare.toDecimal() <= 0) return;
+                    const simplified = simplify(h.finalShare);
+                    const finalAmount = netEstate * simplified.toDecimal();
+                    reportResultsContainer.innerHTML += '<div class="p-4 border mb-4 print-card"><p><strong>Heir:</strong> ' + h.name + ' (Count: ' + h.count + ')</p><p><strong>Final Share (Fraction):</strong> ' + simplified.toString() + '</p><p><strong>Final Amount:</strong> ₹ ' + finalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' + (h.count > 1 ? '<p><strong>Amount Per Person:</strong> ₹ ' + (finalAmount / h.count).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</p>' : '') + '<p class="text-sm text-gray-600"><strong>Justification:</strong> ' + (h.justification || 'Primary heir.') + '</p></div>';
+                });
+                if (reportResultsContainer.innerHTML === '') {
+                    reportResultsContainer.innerHTML = '<div class="p-4 border print-card text-center"><p>No Quranic Heirs are entitled to a share.</p></div>';
+                }
+            }
+
+            // --- ATTACH ALL EVENT LISTENERS ---
+            document.querySelectorAll('input[name="deceasedGender"]').forEach(radio => radio.addEventListener('change', (e) => updateDynamicLabels(e.target.value)));
+            document.getElementById('btn-to-screen-2').addEventListener('click', () => goToScreen2(false));
+            document.getElementById('btn-back-to-screen-1').addEventListener('click', goToScreen1);
+            document.getElementById('btn-calculate').addEventListener('click', calculateAndGoToScreen3);
+            document.getElementById('btn-back-to-screen-2').addEventListener('click', () => goToScreen2(true));
+            document.getElementById('btn-print').addEventListener('click', printReport);
+            document.getElementById('btn-start-over').addEventListener('click', startOver);
+            document.getElementById('sons').addEventListener('input', updateUIExclusions);
+            document.querySelectorAll('input[name="children"]').forEach(radio => radio.addEventListener('change', (e) => { document.getElementById('children-count-section').classList.toggle('hidden', e.target.value !== 'yes'); updateUIExclusions(); }));
+            document.querySelectorAll('input[name="parents"]').forEach(radio => radio.addEventListener('change', updateUIExclusions));
+            document.querySelectorAll('input[name="spouse"]').forEach(radio => radio.addEventListener('change', (e) => toggleSpouseCount(e.target.value === 'yes')));
+            document.querySelectorAll('input[name="grandchildren"]').forEach(radio => radio.addEventListener('change', (e) => toggleGrandchildrenCount(e.target.value === 'yes')));
+            document.querySelectorAll('input[name="paternal-grandparents"]').forEach(radio => radio.addEventListener('change', (e) => toggleGrandparentsCount(e.target.value === 'yes')));
+            document.querySelectorAll('input[name="siblings"]').forEach(radio => radio.addEventListener('change', (e) => toggleSiblingsCount(e.target.value === 'yes')));
+            
+            // Initial UI setup
+            updateDynamicLabels('male');
+            updateUIExclusions();
+            
+            console.log("Hanafi Mirath Assistant successfully initialized.");
+
+        } catch (e) {
+            console.error("Hanafi Mirath Assistant FAILED to initialize.", e);
+            const container = document.getElementById('hanafi-mirath-app-container');
+            if (container) {
+                container.innerHTML = '<div style="padding: 20px; border: 2px solid red; background: #ffeeee; color: red; text-align: center;"><h3>CALCULATOR FAILED TO LOAD</h3><p>An error occurred. Please check the browser console for details.</p></div>';
+            }
+        }
+    }
+
+    // Use window.load to ensure everything is ready before the app runs
+    window.addEventListener('load', initializeMirathApp);
+    </script>
+</body>
+</html>
+

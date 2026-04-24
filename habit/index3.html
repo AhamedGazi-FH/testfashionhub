@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Consistency Dashboard</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#f1f5f9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Focus">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQ29uc2lzdGVuY3kgRGFzaGJvYXJkIiwic2hvcnRfbmFtZSI6IkZvY3VzIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmMWY1ZjkiLCJ0aGVtZV9jb2xvciI6IiNmMWY1ZjkiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yY3lCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhaaFkyMTBiejBpT1RBd01qQXdNQ0lnZUhWdFlXeDZaVjlyWlcxbGNuTmxkRG9pZEhKMVpTSWdlRzFzYm5NNkoyaDBkSEE2THk5M2QzY3Vkek11YjNKbkx6SXdNREF2YzNaZ0lpQjJhV1YzUW05NFBTSXdJRE0xSURFd01DQXhNREFpUGp4eVpXTjBJSGRwWkhSb1BTSXhNREFpSUdobGFXZG9kRDBpTVRBd0lpQnllRDBpTWpBaUlHWnBiR3c5SWlNeFkyazRPQ0l2UGp4d2FHRmpkR1Z5SUdodlpHRnpZVzQ5SWkwaUlIZHBaSFJvUFNJeE1EQWlJR2hsYVdkb2REMGlNVEF3SWlCeWVEMGlNekFpSUdaMWJHeHBiRDBpSW1OdmJHNXNhV1EzTUM1amIyMGlMejQ4Y0dGMGFDQmtaVDBpVFQwaUlITjBjbTlyWlQwaWRYaHBkR1VpSUhOMGNtOXJaUzEzYVdSMGFEMGlNVEFpSUdadmJtUmxjRDBpYm05dVpTSWdjM1J5YjJ0bE1pMXNhVzVsWTJGdlBTSnliM1Z1WkNJZ2MzUnliMnRsTTExc2FXNWxhbTl1YmpvaWNtOTFibVFpTHo0OCIiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifV19">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMThjOTY4Ii8+PHBhdGggZD0iTTMwIDUwIEw0NSA2NSBMNzAgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], },
+                    colors: {
+                        brand: { green: '#10b981', yellow: '#fbbf24', red: '#fda4af', dark: '#0f172a' }
+                    },
+                    animation: {
+                        'pop': 'pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite', 
+                        'glow': 'glow 2s ease-in-out infinite alternate', 
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'translateY(10px) scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+                        },
+                        glow: {
+                            '0%': { filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.4))' },
+                            '100%': { filter: 'drop-shadow(0 0 10px rgba(249, 115, 22, 0.9))' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; background-color: #f1f5f9; transition: background-color 0.5s ease, color 0.5s ease; }
+        html.dark body { background-color: #0f172a; color: #f8fafc; }
+        
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+        .glass-card { background: #ffffff; border-radius: 24px; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03); border: 1px solid rgba(226, 232, 240, 0.8); transition: all 0.3s ease; }
+        html.dark .glass-card { background: #1e293b; border-color: #334155; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3); }
+        
+        .progress-ring__circle { transition: stroke-dashoffset 0.8s ease-in-out; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        
+        .card-pending { transform: scale(1); }
+        .card-done { transform: scale(0.98); opacity: 0.85; background-color: #f8fafc; box-shadow: none; border-color: transparent; }
+        html.dark .card-done { background-color: #0f172a; }
+        
+        .btn-press:active { transform: scale(0.96); transition: transform 0.1s; }
+        .chain-container { position: relative; z-index: 1; }
+        .chain-line { position: absolute; top: 50%; left: 5%; right: 5%; height: 3px; background-color: #e2e8f0; z-index: -1; transform: translateY(-50%); border-radius: 2px; transition: background-color 0.5s; }
+        html.dark .chain-line { background-color: #334155; }
+        
+        .flex-container { display: flex; flex-wrap: wrap; gap: 4px; }
+        .grid-cell { width: 14px; height: 14px; border-radius: 4px; cursor: pointer; transition: transform 0.1s; }
+        .grid-cell:hover { transform: scale(1.2); z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .grid-cell:active { transform: scale(0.9); }
+
+        .liquid-container { display: grid; transition: grid-template-rows 0.3s ease-out, opacity 0.3s ease-out; }
+        .liquid-open { grid-template-rows: 1fr; opacity: 1; pointer-events: auto; }
+        .liquid-closed { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
+        .liquid-inner { overflow: hidden; min-height: 0; }
+    </style>
+</head>
+<body class="text-brand-dark antialiased pb-24 selection:bg-brand-green selection:text-white transition-colors duration-1000">
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="fixed inset-0 bg-slate-50 dark:bg-slate-900 z-50 flex items-center justify-center p-6 transition-colors duration-1000">
+        <div class="glass-card w-full max-w-sm p-8 text-center animate-pop">
+            <h1 class="text-4xl font-black mb-2 dark:text-white tracking-tight">Focus.</h1>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">Login to your vault</p>
+            
+            <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 mb-4 outline-none focus:border-brand-green dark:text-white transition-colors font-medium">
+            <input type="password" id="authPassword" placeholder="Password" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 mb-2 outline-none focus:border-brand-green dark:text-white transition-colors font-medium">
+            
+            <p id="authError" class="text-xs font-bold text-red-500 mb-4 h-4"></p>
+
+            <button onclick="handleLogin()" id="loginBtn" class="w-full bg-brand-dark dark:bg-brand-green text-white rounded-xl py-3.5 font-bold shadow-md transition-all btn-press mb-3">Login</button>
+            <button onclick="handleSignUp()" id="signupBtn" class="w-full bg-transparent border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl py-3 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all btn-press">Create Account</button>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="mainDashboard" class="max-w-md mx-auto min-h-screen relative hidden opacity-0 transition-opacity duration-500">
+        
+        <!-- HEADER -->
+        <header class="px-6 pt-10 pb-2 flex justify-between items-start">
+            <div>
+                <p id="currentDateDisplay" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1"></p>
+                <p id="dailyTargetText" class="text-[10px] font-black text-brand-green uppercase tracking-widest mt-1 mb-1"></p>
+                <h1 class="text-3xl font-black tracking-tight flex items-center gap-2 dark:text-white">Focus.</h1>
+                <p id="syncStatus" class="text-[9px] font-bold text-slate-400 mt-1.5 uppercase tracking-widest flex items-center gap-1">
+                    <i class="ph-bold ph-spinner animate-spin"></i> Connecting...
+                </p>
+            </div>
+            <button onclick="openSettingsModal()" class="p-2.5 bg-white dark:bg-slate-800 rounded-full text-slate-400 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white shadow-sm transition btn-press">
+                <i class="ph-bold ph-gear text-lg"></i>
+            </button>
+        </header>
+
+        <!-- Zero Day Warning Banner -->
+        <div id="zeroDayWarning" class="px-6 mb-4 hidden animate-pop">
+            <div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                <i class="ph-fill ph-warning-circle text-2xl mt-0.5 animate-pulse-fast"></i>
+                <div>
+                    <h4 id="warningTitle" class="font-black text-lg leading-tight">⚠️ Chain at risk</h4>
+                    <p id="warningText" class="text-xs font-bold opacity-80 mt-1">You are about to break your chain.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- HERO DASHBOARD -->
+        <section class="px-6 mb-8 animate-pop">
+            <div id="heroDashboardCard" class="glass-card p-8 flex flex-col items-center relative overflow-hidden transition-all duration-700">
+                <div id="evolutionBadge" class="hidden absolute top-4 left-4 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest shadow-sm transition-all"></div>
+
+                <div class="relative w-36 h-36 mb-4 flex items-center justify-center">
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                        <circle class="text-slate-100 dark:text-slate-700 stroke-current transition-colors duration-500" stroke-width="8" cx="50" cy="50" r="42" fill="transparent"></circle>
+                        <circle id="todayRing" class="text-brand-green stroke-current progress-ring__circle drop-shadow-md" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="42" fill="transparent" stroke-dasharray="263.89" stroke-dashoffset="263.89"></circle>
+                    </svg>
+                    <div class="z-10 flex flex-col items-center text-center">
+                        <span id="todayScoreMain" class="text-4xl font-black tracking-tighter leading-none dark:text-white">0/0</span>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-1">Today</span>
+                    </div>
+                </div>
+
+                <div id="motivationalBanner" class="bg-slate-50 dark:bg-slate-800/50 px-5 py-2.5 rounded-full border border-slate-100 dark:border-slate-700 mb-6 flex items-center gap-2 transition-colors duration-500">
+                    <i id="motivationalIcon" class="ph-fill ph-lightning text-orange-400 text-lg"></i>
+                    <p id="motivationalQuote" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Don't become inconsistent.</p>
+                </div>
+
+                <div class="w-full grid grid-cols-3 gap-3 border-t border-slate-100 dark:border-slate-700 pt-6">
+                    <div class="text-center relative">
+                        <div class="flex justify-center items-center gap-1 text-orange-500 mb-1 z-10 relative">
+                            <i class="ph-fill ph-fire text-sm"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Streak</span>
+                        </div>
+                        
+                        <!-- Momentum Sparkline Container -->
+                        <div id="sparklineContainer" class="absolute inset-0 flex items-center justify-center z-0 -mt-2 opacity-50 pointer-events-none"></div>
+                        
+                        <div id="freezeBadge" class="hidden absolute -top-1 right-0 w-max text-[10px] font-bold text-cyan-600 bg-cyan-100 border border-cyan-200 px-1 rounded-md shadow-sm z-20" title="Streak Freezes Available">🛡️ 0</div>
+                        <p id="streakWrapper" class="text-xl font-black text-slate-800 dark:text-white transition-all relative z-10"><span id="currentStreak">0</span></p>
+                        <div id="protectedStreakLabel" class="hidden absolute -bottom-3 left-1/2 -translate-x-1/2 w-max text-[8px] font-bold text-white bg-orange-500 px-1.5 py-0.5 rounded uppercase tracking-widest shadow-sm z-20">Protected</div>
+                    </div>
+                    <div class="text-center border-x border-slate-100 dark:border-slate-700 z-10">
+                        <div class="flex justify-center items-center gap-1 text-blue-500 mb-1">
+                            <i class="ph-fill ph-calendar-check text-sm"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Month</span>
+                        </div>
+                        <p class="text-xl font-black text-slate-800 dark:text-white"><span id="monthlyPercent">0</span>%</p>
+                    </div>
+                    <div class="text-center relative z-10">
+                        <div class="flex justify-center items-center gap-1 text-brand-dark dark:text-slate-300 mb-1">
+                            <i class="ph-fill ph-flag-checkered text-sm"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Left</span>
+                        </div>
+                        <p class="text-xl font-black text-slate-800 dark:text-white"><span id="urgencyText">180</span></p>
+                        <div id="urgencySubText" class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-max text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1"></div>
+                    </div>
+                </div>
+
+                <div class="w-full mt-6">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Journey Progress</span>
+                        <span class="text-[10px] font-bold text-brand-dark dark:text-white" id="sixMonthPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
+                        <div id="sixMonthBar" class="bg-brand-dark dark:bg-white h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DYNAMIC HABIT CARDS CONTAINER -->
+        <section class="px-6 mb-10 space-y-4" id="habitCardsContainer">
+            <!-- Rendered via JS -->
+        </section>
+
+        <!-- 7-DAY CHAIN -->
+        <section class="px-6 mb-10">
+            <div class="flex justify-between items-end mb-4">
+                <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Global Chain (7 Days)</h3>
+                <span id="weeklyScoreBadge" class="text-xs font-black text-brand-dark bg-white dark:bg-slate-800 dark:text-white px-2 py-1 rounded-md shadow-sm border border-slate-100 dark:border-slate-700">0%</span>
+            </div>
+            <div class="chain-container py-2" id="sevenDayContainer"></div>
+        </section>
+
+        <!-- DYNAMIC HISTORY GRIDS -->
+        <section class="px-6 mb-12">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Detailed History Logs <span class="text-brand-green font-normal lowercase tracking-normal">(tap a day to edit)</span></h3>
+            
+            <div class="flex gap-4 text-[10px] font-bold tracking-wide text-slate-400 mb-5 justify-center uppercase">
+                <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded bg-brand-green"></div> Full</div>
+                <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded bg-brand-yellow"></div> Min</div>
+                <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded bg-brand-red opacity-80"></div> Rest</div>
+                <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"></div> Frozen</div>
+            </div>
+
+            <div id="historyGridsContainer" class="space-y-6">
+                <!-- Rendered via JS -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- DYNAMIC EDIT MODAL -->
+    <div id="editModal" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-pop">
+        <div class="glass-card w-full max-w-sm p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeEditModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:hover:text-white bg-slate-100 rounded-full p-1.5 btn-press">
+                <i class="ph-bold ph-x"></i>
+            </button>
+            <h3 id="editModalDate" class="text-lg font-black text-slate-800 dark:text-white mb-1">Edit Date</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5">Manual Override</p>
+            
+            <div id="modalHabitsContainer" class="space-y-4">
+                <!-- Rendered via JS -->
+            </div>
+
+            <button onclick="closeEditModal()" class="w-full mt-6 bg-brand-dark dark:bg-brand-green text-white font-bold py-3 rounded-xl shadow-md btn-press">Done</button>
+        </div>
+    </div>
+
+    <!-- SETTINGS / DATA VAULT MODAL -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
+        <div class="glass-card w-full max-w-sm p-6 relative">
+            <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:hover:text-white bg-slate-100 rounded-full p-1.5 btn-press">
+                <i class="ph-bold ph-x"></i>
+            </button>
+            <h3 class="text-lg font-black text-slate-800 dark:text-white mb-1">Data Vault</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Settings & Backup</p>
+            
+            <div class="space-y-3">
+                <button onclick="exportData()" class="w-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-xl py-3 font-bold flex items-center justify-center gap-2 btn-press transition-colors hover:bg-blue-100">
+                    <i class="ph-bold ph-download-simple text-lg"></i> Download Backup (.json)
+                </button>
+                
+                <label class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl py-3 font-bold flex items-center justify-center gap-2 btn-press transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
+                    <i class="ph-bold ph-upload-simple text-lg"></i> Import Data
+                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+                </label>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-700 mt-2 space-y-3">
+                    <!-- NEW: Logout Button -->
+                    <button onclick="handleLogout()" class="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl py-3 font-bold flex items-center justify-center gap-2 btn-press transition-colors hover:bg-slate-200">
+                        <i class="ph-bold ph-sign-out text-lg"></i> Sign Out
+                    </button>
+
+                    <button onclick="resetData()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl py-3 font-bold flex items-center justify-center gap-2 btn-press transition-colors hover:bg-red-100">
+                        <i class="ph-bold ph-warning-octagon text-lg"></i> Hard Reset All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // NEW: Import Auth functions
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => self.clients.claim());
+                self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Offline'))); });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => console.log("SW Skipped"));
+        }
+
+        window.resetData = resetData;
+        window.markHabit = markHabit;
+        window.undoHabit = undoHabit;
+        window.openEditModal = openEditModal;
+        window.closeEditModal = closeEditModal;
+        window.updatePastHabit = updatePastHabit;
+        
+        window.openSettingsModal = () => document.getElementById('settingsModal').classList.remove('hidden');
+        window.closeSettingsModal = () => document.getElementById('settingsModal').classList.add('hidden');
+        window.exportData = exportData;
+        window.importData = importData;
+        
+        window.saveNote = function(habitId, val) {
+            const today = getTodayString();
+            appData.records[today][habitId + '_note'] = val;
+            saveData();
+            updateUI(); 
+        };
+
+        function triggerHaptic(type = 'light') {
+            if (window.navigator && window.navigator.vibrate) {
+                if (type === 'light') navigator.vibrate(30);
+                if (type === 'heavy') navigator.vibrate([40, 50, 40]);
+            }
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti !== 'undefined') {
+                const duration = 3000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#10b981', '#fbbf24', '#3b82f6'] });
+                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#10b981', '#fbbf24', '#3b82f6'] });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            }
+        }
+
+        const HABITS_CONFIG = [
+            { id: 'walking', name: 'Walking', target: '1 Hour', min: '15m', icon: 'ph-sneaker', color: 'emerald' },
+            { id: 'exercise', name: 'Exercise', target: '20 Mins', min: '5m', icon: 'ph-barbell', color: 'blue' },
+        ];
+
+        const MY_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBiaJGzxsIFKLQvkvuueTOcxlvjk5bT3nI",
+            authDomain: "habit-consistency-app.firebaseapp.com",
+            projectId: "habit-consistency-app",
+            storageBucket: "habit-consistency-app.firebasestorage.app",
+            messagingSenderId: "539765681354",
+            appId: "1:539765681354:web:04f7d9b7dcfce564135833"
+        };
+
+        const TOTAL_DAYS_GOAL = 180;
+        
+        let db, auth, currentUser, docRef; 
+        let unsubscribeSnapshot = null;
+        let editModalActiveDate = null;
+        
+        window.globalFrozenDays = new Set();
+
+        let appData = {
+            startDate: getTodayString(),
+            records: {},
+            milestones: {} 
+        };
+
+        function getLocalKey() {
+            return 'consistency_app_data_' + (currentUser ? currentUser.uid : 'offline');
+        }
+
+        function getTodayString() {
+            const d = new Date();
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            return d.toISOString().split('T')[0];
+        }
+
+        function subtractDays(dateString, days) {
+            const d = new Date(dateString);
+            d.setDate(d.getDate() - days);
+            return d.toISOString().split('T')[0];
+        }
+        
+        function updateCurrentDateDisplay() {
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-US', options);
+        }
+
+        function updateCircadianTheme() {
+            const hour = new Date().getHours();
+            const html = document.documentElement;
+            if (hour >= 20 || hour < 6) {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+        }
+
+        // NEW: Auth System Logic
+        window.handleLogin = async () => {
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+            const err = document.getElementById('authError');
+            err.classList.add('hidden');
+            if(!email || !pass) { err.innerText = "Enter email and password"; err.classList.remove('hidden'); return; }
+            
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "Connecting...";
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch(e) {
+                err.innerText = e.message.includes('auth/invalid-credential') ? "Incorrect email or password" : e.message;
+                err.classList.remove('hidden');
+                btn.innerText = "Login";
+            }
+        };
+
+        window.handleSignUp = async () => {
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+            const err = document.getElementById('authError');
+            err.classList.add('hidden');
+            if(!email || !pass) { err.innerText = "Enter email and password"; err.classList.remove('hidden'); return; }
+            if(pass.length < 6) { err.innerText = "Password must be 6+ chars"; err.classList.remove('hidden'); return; }
+            
+            const btn = document.getElementById('signupBtn');
+            btn.innerText = "Creating...";
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+            } catch(e) {
+                err.innerText = e.message.includes('email-already-in-use') ? "Account already exists. Please login." : e.message;
+                err.classList.remove('hidden');
+                btn.innerText = "Create Account";
+            }
+        };
+
+        window.handleLogout = async () => {
+            await signOut(auth);
+            closeSettingsModal();
+        };
+
+        async function initFirebase() {
+            const isCanvas = typeof __firebase_config !== 'undefined';
+            const configToUse = isCanvas ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'consistency-app';
+
+            if (!configToUse) {
+                console.log("Local Storage Only Mode");
+                return;
+            }
+
+            try {
+                const app = initializeApp(configToUse);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listen for Login/Logout
+                onAuthStateChanged(auth, (user) => {
+                    const authScreen = document.getElementById('authScreen');
+                    const mainDashboard = document.getElementById('mainDashboard');
+
+                    if (user) {
+                        currentUser = user;
+                        authScreen.classList.add('hidden');
+                        mainDashboard.classList.remove('hidden');
+                        setTimeout(() => mainDashboard.classList.remove('opacity-0'), 50);
+
+                        // Isolate data to THIS specific user
+                        docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'appData', 'tracker');
+                        
+                        document.getElementById('syncStatus').innerHTML = '<i class="ph-fill ph-cloud-check text-brand-green text-xs"></i> <span class="text-brand-green">Cloud Synced</span>';
+                        setupFirestoreListener();
+                    } else {
+                        currentUser = null;
+                        if(unsubscribeSnapshot) unsubscribeSnapshot();
+                        docRef = null;
+                        mainDashboard.classList.add('hidden');
+                        mainDashboard.classList.add('opacity-0');
+                        authScreen.classList.remove('hidden');
+                        
+                        // Reset buttons
+                        document.getElementById('loginBtn').innerText = "Login";
+                        document.getElementById('signupBtn').innerText = "Create Account";
+                        document.getElementById('authEmail').value = "";
+                        document.getElementById('authPassword').value = "";
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase setup error:", error);
+            }
+        }
+
+        function setupFirestoreListener() {
+            if (!docRef || !currentUser) return;
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+            unsubscribeSnapshot = onSnapshot(docRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    appData = { milestones: {}, ...snapshot.data() };
+                    ensureTodayExists();
+                    updateUI();
+                } else {
+                    const localRaw = localStorage.getItem(getLocalKey());
+                    if (localRaw) {
+                        appData = JSON.parse(localRaw);
+                    } else {
+                        appData = { startDate: getTodayString(), records: {}, milestones: {} };
+                    }
+                    ensureTodayExists();
+                    saveData();
+                    updateUI();
+                }
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+                const syncStatusEl = document.getElementById('syncStatus');
+                if (syncStatusEl) {
+                    if (error.code === 'permission-denied') {
+                        syncStatusEl.innerHTML = '<i class="ph-fill ph-lock-key text-brand-red text-xs"></i> <span class="text-brand-red">DB Locked (Check Rules)</span>';
+                    } else {
+                        syncStatusEl.innerHTML = '<i class="ph-fill ph-cloud-slash text-brand-red text-xs"></i> <span class="text-brand-red">Offline / Local Mode</span>';
+                    }
+                }
+                loadDataLocal();
+            });
+        }
+
+        function ensureTodayExists() {
+            const today = getTodayString();
+            if (!appData.records[today]) {
+                const emptyRecord = {};
+                HABITS_CONFIG.forEach(h => emptyRecord[h.id] = 'none');
+                appData.records[today] = emptyRecord;
+                saveData();
+            } else {
+                HABITS_CONFIG.forEach(h => {
+                    if(!appData.records[today][h.id]) appData.records[today][h.id] = 'none';
+                });
+            }
+            if(!appData.milestones) appData.milestones = {};
+        }
+
+        function loadDataLocal() {
+            const raw = localStorage.getItem(getLocalKey());
+            if (raw) {
+                appData = JSON.parse(raw);
+            } else {
+                appData = { startDate: getTodayString(), records: {}, milestones: {} };
+                saveData();
+            }
+            ensureTodayExists();
+            updateUI();
+        }
+
+        function saveData() {
+            localStorage.setItem(getLocalKey(), JSON.stringify(appData));
+            
+            if (docRef && currentUser) { 
+                setDoc(docRef, appData).catch(err => {
+                    console.error("Cloud save failed", err);
+                    const syncStatusEl = document.getElementById('syncStatus');
+                    if (syncStatusEl && err.code === 'permission-denied') {
+                        syncStatusEl.innerHTML = '<i class="ph-fill ph-lock-key text-brand-red text-xs"></i> <span class="text-brand-red">DB Locked (Check Rules)</span>';
+                    }
+                });
+            }
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `consistency_backup_${getTodayString()}.json`);
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && imported.records && imported.startDate) {
+                        appData = imported;
+                        saveData();
+                        updateUI();
+                        closeSettingsModal();
+                        alert("Data imported successfully!");
+                    } else {
+                        alert("Invalid backup file format.");
+                    }
+                } catch (err) {
+                    alert("Error reading file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetData() {
+            if(confirm("DANGER: Start fresh? This permanently deletes ALL progress from cloud and local storage. Be sure you exported a backup first!")) {
+                appData = { startDate: getTodayString(), records: {}, milestones: {} };
+                const emptyRecord = {};
+                HABITS_CONFIG.forEach(h => emptyRecord[h.id] = 'none');
+                appData.records[getTodayString()] = emptyRecord;
+                
+                saveData();
+                updateUI();
+                closeSettingsModal();
+            }
+        }
+
+        function markHabit(habitId, status) {
+            triggerHaptic('light'); 
+            const today = getTodayString();
+            appData.records[today][habitId] = status;
+            saveData();
+            updateUI();
+        }
+
+        function undoHabit(habitId) {
+            const today = getTodayString();
+            appData.records[today][habitId] = 'none';
+            delete appData.records[today][habitId + '_note'];
+            saveData();
+            updateUI();
+        }
+
+        function openEditModal(dateStr) {
+            editModalActiveDate = dateStr;
+            
+            if(!appData.records[dateStr]) {
+                const emptyRecord = {};
+                HABITS_CONFIG.forEach(h => emptyRecord[h.id] = 'none');
+                appData.records[dateStr] = emptyRecord;
+            }
+
+            const dateObj = new Date(dateStr);
+            document.getElementById('editModalDate').innerText = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            
+            refreshEditModalButtons();
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            editModalActiveDate = null;
+        }
+
+        function updatePastHabit(habitId, status) {
+            triggerHaptic('light');
+            if(!editModalActiveDate) return;
+            if (status === 'clear') {
+                delete appData.records[editModalActiveDate][habitId];
+                delete appData.records[editModalActiveDate][habitId + '_note'];
+            } else {
+                appData.records[editModalActiveDate][habitId] = status;
+            }
+            saveData();
+            refreshEditModalButtons();
+            updateUI(); 
+        }
+
+        function generateHabitCards() {
+            const container = document.getElementById('habitCardsContainer');
+            container.innerHTML = '';
+            
+            HABITS_CONFIG.forEach(habit => {
+                container.innerHTML += `
+                <div id="card-${habit.id}" class="glass-card p-5 card-pending transition-all duration-500 overflow-hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-${habit.color}-100 dark:bg-${habit.color}-900/30 flex items-center justify-center text-${habit.color}-600 dark:text-${habit.color}-400">
+                                <i class="ph-fill ${habit.icon} text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold leading-tight dark:text-white">${habit.name}</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${habit.target}</p>
+                            </div>
+                        </div>
+                        <div class="text-right bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Streak</p>
+                            <p class="text-sm font-black text-orange-500"><span id="streak-${habit.id}">0</span></p>
+                        </div>
+                    </div>
+                    
+                    <div id="actions-wrap-${habit.id}" class="liquid-container liquid-open">
+                        <div class="liquid-inner flex gap-2">
+                            <button onclick="markHabit('${habit.id}', 'full')" class="flex-1 bg-brand-dark dark:bg-brand-green text-white rounded-xl py-3 font-semibold text-sm shadow-md btn-press flex justify-center items-center gap-1.5">
+                                <i class="ph-bold ph-check"></i> Full
+                            </button>
+                            <button id="btn-min-${habit.id}" onclick="markHabit('${habit.id}', 'partial')" class="flex-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 rounded-xl py-3 font-semibold text-sm btn-press flex justify-center items-center gap-1.5 border border-amber-200 dark:border-amber-800 transition-all">
+                                Min <span class="opacity-60 font-normal">(${habit.min})</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="success-wrap-${habit.id}" class="liquid-container liquid-closed">
+                        <div id="success-${habit.id}" class="liquid-inner bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl p-3.5 border border-emerald-100 dark:border-emerald-800 flex flex-col gap-2 mt-2">
+                            <div class="flex items-center justify-between w-full">
+                                <div class="flex items-center gap-2 font-bold text-sm">
+                                    <i class="ph-fill ph-check-circle text-lg"></i>
+                                    <span id="status-text-${habit.id}">Completed</span>
+                                </div>
+                                <button onclick="undoHabit('${habit.id}')" class="text-xs underline opacity-60 hover:opacity-100 p-1">Undo</button>
+                            </div>
+                            <input type="text" id="note-${habit.id}" placeholder="1 word on how it felt..." class="hidden mt-1 text-xs px-2.5 py-1.5 rounded-lg bg-white/60 dark:bg-slate-900/60 border border-emerald-200/60 dark:border-emerald-800/60 outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-400 w-full transition-all text-emerald-800 dark:text-emerald-300 placeholder-emerald-800/40 dark:placeholder-emerald-300/40 font-medium" onchange="saveNote('${habit.id}', this.value)" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function generateModalHabits() {
+            const container = document.getElementById('modalHabitsContainer');
+            container.innerHTML = '';
+            
+            HABITS_CONFIG.forEach(habit => {
+                container.innerHTML += `
+                <div>
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5"><i class="ph-fill ${habit.icon} text-${habit.color}-500"></i> ${habit.name}</p>
+                    <div class="flex gap-2" id="edit-${habit.id}-btns">
+                        <button onclick="updatePastHabit('${habit.id}', 'full')" class="flex-1 py-2 rounded-lg font-bold text-xs border transition-colors edit-btn-full border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">Full</button>
+                        <button onclick="updatePastHabit('${habit.id}', 'partial')" class="flex-1 py-2 rounded-lg font-bold text-xs border transition-colors edit-btn-partial border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">Min</button>
+                        <button onclick="updatePastHabit('${habit.id}', 'none')" class="flex-1 py-2 rounded-lg font-bold text-xs border transition-colors edit-btn-none border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">Rest</button>
+                        <button onclick="updatePastHabit('${habit.id}', 'clear')" class="px-3 py-2 rounded-lg font-bold text-xs border transition-colors border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 flex items-center justify-center" title="Clear Data"><i class="ph-bold ph-eraser text-sm"></i></button>
+                    </div>
+                    <div id="modal-note-display-${habit.id}" class="text-[10px] mt-2 hidden"></div>
+                </div>`;
+            });
+        }
+
+        function refreshEditModalButtons() {
+            if(!editModalActiveDate) return;
+            const record = appData.records[editModalActiveDate] || {};
+            
+            HABITS_CONFIG.forEach(habit => {
+                const state = record[habit.id] || 'none';
+                const container = document.getElementById(`edit-${habit.id}-btns`);
+                if(!container) return;
+                
+                const btns = {
+                    full: container.querySelector('.edit-btn-full'),
+                    partial: container.querySelector('.edit-btn-partial'),
+                    none: container.querySelector('.edit-btn-none')
+                };
+
+                Object.values(btns).forEach(btn => {
+                    btn.className = btn.className.replace(/bg-brand-green|text-white|bg-brand-yellow|bg-brand-red|opacity-80|border-transparent/g, '');
+                    btn.classList.add('border-slate-200', 'text-slate-500', 'dark:border-slate-700', 'dark:text-slate-400');
+                });
+
+                if (state === 'full') {
+                    btns.full.classList.remove('border-slate-200', 'text-slate-500', 'dark:border-slate-700', 'dark:text-slate-400');
+                    btns.full.classList.add('bg-brand-green', 'text-white', 'border-transparent');
+                } else if (state === 'partial') {
+                    btns.partial.classList.remove('border-slate-200', 'text-slate-500', 'dark:border-slate-700', 'dark:text-slate-400');
+                    btns.partial.classList.add('bg-brand-yellow', 'text-white', 'border-transparent');
+                } else if (state === 'none') {
+                    btns.none.classList.remove('border-slate-200', 'text-slate-500', 'dark:border-slate-700', 'dark:text-slate-400');
+                    btns.none.classList.add('bg-brand-red', 'text-white', 'opacity-80', 'border-transparent');
+                }
+                
+                const note = record[habit.id + '_note'];
+                const noteDisplay = document.getElementById(`modal-note-display-${habit.id}`);
+                if (noteDisplay) {
+                    if (note) {
+                        noteDisplay.innerHTML = `<span class="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-slate-600 dark:text-slate-300 font-medium italic shadow-sm">📝 "${note}"</span>`;
+                        noteDisplay.classList.remove('hidden');
+                    } else {
+                        noteDisplay.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function getDayStatus(record) {
+            if (!record) return 'none';
+            let allFull = true;
+            let someActive = false;
+
+            HABITS_CONFIG.forEach(h => {
+                const val = record[h.id] || 'none';
+                if (val !== 'full') allFull = false;
+                if (val !== 'none') someActive = true;
+            });
+
+            if (allFull && HABITS_CONFIG.length > 0) return 'perfect';
+            if (someActive) return 'active'; 
+            return 'missed';
+        }
+
+        function calculateStreaks() {
+            window.globalFrozenDays = new Set();
+            let currentStreak = 0;
+            let currentHabitStreak = {};
+            HABITS_CONFIG.forEach(h => currentHabitStreak[h.id] = 0);
+            
+            const dates = Object.keys(appData.records).sort();
+            const today = getTodayString();
+            
+            let tempStreak = 0;
+            let perfectCount = 0;
+            let freezesAvailable = 0;
+
+            for (let i = 0; i < dates.length; i++) {
+                const date = dates[i];
+                const status = getDayStatus(appData.records[date]);
+
+                if (status === 'perfect') {
+                    perfectCount++;
+                    if (perfectCount >= 14) {
+                        freezesAvailable = Math.min(2, freezesAvailable + 1);
+                        perfectCount = 0;
+                    }
+                }
+
+                if (status === 'perfect' || status === 'active') {
+                    tempStreak++;
+                } else if (date !== today) {
+                    if (freezesAvailable > 0) {
+                        freezesAvailable--;
+                        window.globalFrozenDays.add(date);
+                    } else {
+                        tempStreak = 0;
+                        perfectCount = 0;
+                        freezesAvailable = 0;
+                    }
+                }
+            }
+            currentStreak = tempStreak;
+
+            HABITS_CONFIG.forEach(habit => {
+                let hStreak = 0;
+                for (let i = dates.length - 1; i >= 0; i--) {
+                    const date = dates[i];
+                    const val = appData.records[date]?.[habit.id];
+                    if (val === 'full' || val === 'partial') {
+                        hStreak++;
+                    } else if (date !== today && !window.globalFrozenDays.has(date)) {
+                        break; 
+                    }
+                }
+                currentHabitStreak[habit.id] = hStreak;
+            });
+
+            return { currentStreak, currentHabitStreak, freezesAvailable };
+        }
+
+        function renderSparkline() {
+            const days = 14;
+            const points = [];
+            const width = 80;
+            const height = 30;
+            const today = getTodayString();
+            const maxScore = HABITS_CONFIG.length; 
+            
+            for(let i=days-1; i>=0; i--) {
+                const date = subtractDays(today, i);
+                const rec = appData.records[date];
+                let score = 0;
+                if(rec && !window.globalFrozenDays.has(date)) {
+                    HABITS_CONFIG.forEach(h => {
+                        if(rec[h.id] === 'full' || rec[h.id] === 'partial') score++;
+                    });
+                }
+                const x = ((days - 1 - i) / (days - 1)) * width;
+                const y = height - (score / maxScore) * height;
+                points.push(`${x},${y}`);
+            }
+            
+            const svg = `<svg width="100%" height="100%" viewBox="0 -5 ${width} ${height+10}" class="overflow-visible"><polyline points="${points.join(' ')}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500 opacity-20 dark:opacity-40 drop-shadow-sm transition-all duration-1000" /></svg>`;
+            document.getElementById('sparklineContainer').innerHTML = svg;
+        }
+
+        function updateUI() {
+            updateCircadianTheme(); 
+            
+            const today = getTodayString();
+            const todayRecord = appData.records[today];
+            if(!todayRecord) return;
+
+            const streaks = calculateStreaks();
+            const totalHabits = HABITS_CONFIG.length;
+
+            if (streaks.currentStreak > 0 && [7, 30, 90, 180].includes(streaks.currentStreak)) {
+                if (!appData.milestones[streaks.currentStreak]) {
+                    triggerConfetti();
+                    triggerHaptic('heavy');
+                    appData.milestones[streaks.currentStreak] = true;
+                    saveData();
+                }
+            }
+
+            let completedCount = 0;
+            let allFull = true;
+            HABITS_CONFIG.forEach(h => {
+                const val = todayRecord[h.id];
+                if (val === 'full' || val === 'partial') completedCount++;
+                if (val !== 'full') allFull = false;
+            });
+            const isZeroDay = (completedCount === 0);
+            
+            document.getElementById('todayScoreMain').innerText = `${completedCount}/${totalHabits}`;
+
+            const ring = document.getElementById('todayRing');
+            const heroCard = document.getElementById('heroDashboardCard');
+            const evoBadge = document.getElementById('evolutionBadge');
+            
+            let ringColor = 'text-brand-green';
+            heroCard.style.borderTop = "";
+            heroCard.style.boxShadow = "";
+            evoBadge.classList.add('hidden');
+
+            if (streaks.currentStreak >= 180) {
+                ringColor = 'text-slate-800 dark:text-slate-300';
+                heroCard.style.borderTop = "4px solid #1e293b";
+                heroCard.style.boxShadow = "0 10px 30px -5px rgba(30, 41, 59, 0.3)";
+                evoBadge.innerText = '💎 Obsidian';
+                evoBadge.className = 'absolute top-4 left-4 px-2 py-1 rounded bg-slate-800 text-white text-[9px] font-black uppercase tracking-widest shadow-sm transition-all';
+            } else if (streaks.currentStreak >= 90) {
+                ringColor = 'text-yellow-400';
+                heroCard.style.borderTop = "4px solid #facc15";
+                heroCard.style.boxShadow = "0 10px 30px -5px rgba(250, 204, 21, 0.3)";
+                evoBadge.innerText = '🏆 Gold';
+                evoBadge.className = 'absolute top-4 left-4 px-2 py-1 rounded bg-yellow-400 text-yellow-900 text-[9px] font-black uppercase tracking-widest shadow-sm transition-all';
+            } else if (streaks.currentStreak >= 30) {
+                ringColor = 'text-slate-400';
+                heroCard.style.borderTop = "4px solid #cbd5e1";
+                heroCard.style.boxShadow = "0 10px 30px -5px rgba(203, 213, 225, 0.3)";
+                evoBadge.innerText = '🥈 Silver';
+                evoBadge.className = 'absolute top-4 left-4 px-2 py-1 rounded bg-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-widest shadow-sm transition-all';
+            }
+
+            const circumference = 263.89; 
+            const offset = circumference - (completedCount / totalHabits) * circumference;
+            ring.style.strokeDashoffset = offset;
+            
+            if(completedCount === totalHabits && totalHabits > 0) {
+                ring.setAttribute('class', `progress-ring__circle drop-shadow-md stroke-current transition-all duration-1000 ${ringColor}`);
+            } else {
+                ring.setAttribute('class', `progress-ring__circle drop-shadow-md stroke-current transition-all duration-1000 text-brand-green`);
+            }
+
+            const quoteEl = document.getElementById('motivationalQuote');
+            const iconEl = document.getElementById('motivationalIcon');
+            const bannerEl = document.getElementById('motivationalBanner');
+            
+            const yesterdayStr = subtractDays(today, 1);
+            const yesterdayStatus = getDayStatus(appData.records[yesterdayStr]);
+            const isYesterdayFrozen = window.globalFrozenDays.has(yesterdayStr);
+
+            if (isZeroDay && yesterdayStatus === 'missed' && !isYesterdayFrozen) {
+                quoteEl.innerText = "Yesterday is gone. Today is your reset.";
+                iconEl.className = "ph-fill ph-arrow-counter-clockwise text-blue-500 text-lg";
+                bannerEl.className = "bg-blue-50 dark:bg-blue-900/20 px-5 py-2.5 rounded-full border border-blue-200 dark:border-blue-800/50 mb-6 flex items-center gap-2 transition-all";
+            } else if (isZeroDay && isYesterdayFrozen) {
+                quoteEl.innerText = "Streak saved by Freeze. Protect it today.";
+                iconEl.className = "ph-fill ph-shield-warning text-cyan-500 text-lg";
+                bannerEl.className = "bg-cyan-50 dark:bg-cyan-900/20 px-5 py-2.5 rounded-full border border-cyan-200 dark:border-cyan-800/50 mb-6 flex items-center gap-2 transition-all";
+            } else if (completedCount === totalHabits && allFull) {
+                quoteEl.innerText = "You are disciplined.";
+                iconEl.className = "ph-fill ph-check-circle text-emerald-500 text-lg";
+                bannerEl.className = "bg-emerald-50 dark:bg-emerald-900/20 px-5 py-2.5 rounded-full border border-emerald-200 dark:border-emerald-800/50 mb-6 flex items-center gap-2 transition-all";
+            } else if (isZeroDay) {
+                quoteEl.innerText = "Don't become inconsistent.";
+                iconEl.className = "ph-fill ph-warning text-red-500 text-lg";
+                bannerEl.className = "bg-red-50 dark:bg-red-900/20 px-5 py-2.5 rounded-full border border-red-200 dark:border-red-800/50 mb-6 flex items-center gap-2 transition-all animate-pulse-slow";
+            } else {
+                quoteEl.innerText = "You protected the chain.";
+                iconEl.className = "ph-fill ph-shield-check text-brand-yellow text-lg";
+                bannerEl.className = "bg-amber-50 dark:bg-amber-900/20 px-5 py-2.5 rounded-full border border-amber-200 dark:border-amber-800/50 mb-6 flex items-center gap-2 transition-all";
+            }
+
+            document.getElementById('currentStreak').innerText = streaks.currentStreak;
+            
+            const streakWrapper = document.getElementById('streakWrapper');
+            const protectedLabel = document.getElementById('protectedStreakLabel');
+            if (streaks.currentStreak >= 5) {
+                streakWrapper.classList.add('text-orange-500', 'animate-glow');
+                protectedLabel.classList.remove('hidden');
+            } else {
+                streakWrapper.classList.remove('text-orange-500', 'animate-glow');
+                protectedLabel.classList.add('hidden');
+            }
+
+            const freezeBadge = document.getElementById('freezeBadge');
+            if (streaks.freezesAvailable > 0) {
+                freezeBadge.innerText = `🛡️ ${streaks.freezesAvailable}`;
+                freezeBadge.classList.remove('hidden');
+            } else {
+                freezeBadge.classList.add('hidden');
+            }
+
+            const daysPassed = Math.floor((new Date(today) - new Date(appData.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+            const daysLeft = Math.max(0, TOTAL_DAYS_GOAL - daysPassed);
+            const progressPercent = Math.min(100, Math.max(0, Math.round((daysPassed / TOTAL_DAYS_GOAL) * 100)));
+            
+            document.getElementById('urgencyText').innerText = daysLeft;
+            document.getElementById('sixMonthPercent').innerText = `${progressPercent}%`;
+            document.getElementById('sixMonthBar').style.width = `${progressPercent}%`;
+
+            const urgencySubText = document.getElementById('urgencySubText');
+            if (daysLeft < 7 && daysLeft > 0) {
+                urgencySubText.innerText = "Finish strong.";
+                urgencySubText.className = "absolute -bottom-3 left-1/2 -translate-x-1/2 w-max text-[8px] font-bold text-red-500 uppercase tracking-widest mt-1";
+            } else if (daysLeft < 30 && daysLeft > 0) {
+                urgencySubText.innerText = "Final phase. Stay locked in.";
+                urgencySubText.className = "absolute -bottom-3 left-1/2 -translate-x-1/2 w-max text-[8px] font-bold text-orange-500 uppercase tracking-widest mt-1";
+            } else {
+                urgencySubText.innerText = "";
+            }
+            
+            const currentMonthObj = new Date(today);
+            const currentYear = currentMonthObj.getFullYear();
+            const currentMonth = currentMonthObj.getMonth();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            let monthCompletedCount = 0;
+            
+            for(let i=1; i<=daysInMonth; i++) {
+                const checkDateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const status = getDayStatus(appData.records[checkDateStr]);
+                if (status === 'active' || status === 'perfect') monthCompletedCount++;
+            }
+            const monthPercent = Math.round((monthCompletedCount / daysInMonth) * 100);
+            document.getElementById('monthlyPercent').innerText = monthPercent;
+
+            HABITS_CONFIG.forEach(habit => {
+                const state = todayRecord[habit.id];
+                const card = document.getElementById(`card-${habit.id}`);
+                const actionsWrap = document.getElementById(`actions-wrap-${habit.id}`);
+                const successWrap = document.getElementById(`success-wrap-${habit.id}`);
+                const statusText = document.getElementById(`status-text-${habit.id}`);
+                const minBtn = document.getElementById(`btn-min-${habit.id}`);
+                const noteInput = document.getElementById(`note-${habit.id}`);
+                const successInner = document.getElementById(`success-${habit.id}`);
+                
+                if(!card) return; 
+                
+                document.getElementById(`streak-${habit.id}`).innerText = streaks.currentHabitStreak[habit.id];
+
+                if (state && state !== 'none') {
+                    card.classList.remove('card-pending');
+                    card.classList.add('card-done');
+                    
+                    actionsWrap.classList.remove('liquid-open');
+                    actionsWrap.classList.add('liquid-closed');
+                    successWrap.classList.remove('liquid-closed');
+                    successWrap.classList.add('liquid-open');
+                    
+                    if(state === 'partial') {
+                        statusText.innerText = "Minimum Done";
+                        successInner.className = "liquid-inner bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-500 rounded-xl p-3.5 border border-amber-100 dark:border-amber-800 flex flex-col gap-2 mt-2";
+                        successInner.querySelector('i').className = "ph-fill ph-check-circle text-lg text-amber-500";
+                        if (noteInput) noteInput.classList.add('hidden'); 
+                    } else {
+                        statusText.innerText = "Completed";
+                        successInner.className = "liquid-inner bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl p-3.5 border border-emerald-100 dark:border-emerald-800 flex flex-col gap-2 mt-2";
+                        successInner.querySelector('i').className = "ph-fill ph-check-circle text-lg text-emerald-500";
+                        
+                        if (noteInput) {
+                            noteInput.classList.remove('hidden');
+                            noteInput.value = todayRecord[habit.id + '_note'] || '';
+                        }
+                    }
+                } else {
+                    card.classList.add('card-pending');
+                    card.classList.remove('card-done');
+                    
+                    actionsWrap.classList.remove('liquid-closed');
+                    actionsWrap.classList.add('liquid-open');
+                    successWrap.classList.remove('liquid-open');
+                    successWrap.classList.add('liquid-closed');
+
+                    if (minBtn) {
+                        if (isZeroDay) {
+                            minBtn.classList.add('animate-pulse-fast', 'border-amber-400', 'bg-amber-200', 'dark:bg-amber-900/60');
+                            minBtn.classList.remove('border-amber-200', 'bg-amber-100', 'dark:bg-amber-900/30');
+                        } else {
+                            minBtn.classList.remove('animate-pulse-fast', 'border-amber-400', 'bg-amber-200', 'dark:bg-amber-900/60');
+                            minBtn.classList.add('border-amber-200', 'bg-amber-100', 'dark:bg-amber-900/30');
+                        }
+                    }
+                }
+            });
+
+            renderSparkline();
+            renderSevenDayView();
+            renderSeparateHistoryGrids();
+        }
+
+        function renderSevenDayView() {
+            const container = document.getElementById('sevenDayContainer');
+            const today = getTodayString();
+            const daysOfWeek = ['S','M','T','W','T','F','S'];
+            let weeklyActiveCount = 0;
+
+            let htmlStr = `<div class="chain-line"></div><div class="flex justify-between items-center w-full">`;
+
+            for (let i = 6; i >= 0; i--) {
+                const targetDateStr = subtractDays(today, i);
+                const targetDateObj = new Date(targetDateStr);
+                const dayLabel = daysOfWeek[targetDateObj.getDay()];
+                const record = appData.records[targetDateStr];
+                
+                let bgClass = "bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 cursor-pointer hover:scale-110"; 
+                let iconHtml = "";
+                
+                if (window.globalFrozenDays.has(targetDateStr)) {
+                    bgClass = "bg-cyan-400 border-2 border-cyan-400 shadow-sm text-white cursor-pointer hover:scale-110"; 
+                    iconHtml = `<i class="ph-bold ph-shield text-[10px]"></i>`;
+                    weeklyActiveCount++; 
+                }
+                else if (record) {
+                    const status = getDayStatus(record);
+                    if (status === 'perfect') { 
+                        bgClass = "bg-brand-green border-2 border-brand-green shadow-sm text-white cursor-pointer hover:scale-110"; 
+                        iconHtml = `<i class="ph-bold ph-check"></i>`;
+                        weeklyActiveCount++; 
+                    }
+                    else if (status === 'active') { 
+                        bgClass = "bg-brand-yellow border-2 border-brand-yellow shadow-sm text-white cursor-pointer hover:scale-110"; 
+                        iconHtml = `<i class="ph-bold ph-check"></i>`;
+                        weeklyActiveCount++; 
+                    }
+                    else if (status === 'missed' && targetDateStr !== today) {
+                        bgClass = "bg-brand-red border-2 border-brand-red opacity-80 text-white cursor-pointer hover:scale-110";
+                        iconHtml = `<i class="ph-bold ph-x text-[10px]"></i>`;
+                    }
+                }
+
+                htmlStr += `
+                    <div class="flex flex-col items-center z-10 bg-f1f5f9 dark:bg-slate-900 transition-colors" onclick="openEditModal('${targetDateStr}')">
+                        <div class="w-8 h-8 rounded-full ${bgClass} flex items-center justify-center transition-all mb-1 text-sm">
+                            ${iconHtml}
+                        </div>
+                        <span class="text-[9px] font-black ${i === 0 ? 'text-brand-dark dark:text-white' : 'text-slate-400'}">${i === 0 ? 'TDY' : dayLabel}</span>
+                    </div>
+                `;
+            }
+            htmlStr += `</div>`;
+            container.innerHTML = htmlStr;
+            
+            const weeklyScore = Math.round((weeklyActiveCount / 7) * 100);
+            document.getElementById('weeklyScoreBadge').innerText = `${weeklyScore}%`;
+            document.getElementById('weeklyScoreBadge').className = `text-[10px] font-black px-2 py-1 rounded shadow-sm border ${weeklyScore >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-brand-green border-emerald-100 dark:border-emerald-800/50' : (weeklyScore >= 50 ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 border-amber-100 dark:border-amber-800/50' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700')}`;
+        }
+
+        function renderSeparateHistoryGrids() {
+            const container = document.getElementById('historyGridsContainer');
+            container.innerHTML = '';
+            const today = getTodayString();
+            
+            const currentYearStr = today.split('-')[0];
+            const currentMonthStr = today.split('-')[1];
+            const currentMonthKey = currentYearStr + '-' + currentMonthStr;
+
+            const firstOfCurrentMonthStr = currentYearStr + '-' + currentMonthStr + '-01';
+            
+            const startLimitStr = appData.startDate;
+            const startYearStr = startLimitStr.split('-')[0];
+            const startMonthStr = startLimitStr.split('-')[1];
+            const startMonthFirstStr = startYearStr + '-' + startMonthStr + '-01';
+
+            const absoluteStartStr = (startMonthFirstStr < firstOfCurrentMonthStr) ? startMonthFirstStr : firstOfCurrentMonthStr;
+
+            const datesByMonth = [];
+            let currentGroup = null;
+            let iterDateStr = today;
+
+            while (iterDateStr >= absoluteStartStr) {
+                const [yyyy, mm, dd] = iterDateStr.split('-');
+                const mKey = yyyy + '-' + mm;
+                
+                if (!currentGroup || currentGroup.monthKey !== mKey) {
+                    const dateObj = new Date(yyyy, parseInt(mm)-1, dd);
+                    currentGroup = {
+                        monthName: dateObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+                        monthKey: mKey,
+                        dates: []
+                    };
+                    datesByMonth.push(currentGroup);
+                }
+                currentGroup.dates.push(iterDateStr);
+                iterDateStr = subtractDays(iterDateStr, 1);
+            }
+
+            HABITS_CONFIG.forEach(habit => {
+                let html = `
+                <div class="glass-card p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="ph-fill ${habit.icon} text-${habit.color}-500 text-lg"></i>
+                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300">${habit.name} History</h4>
+                    </div>
+                    <div class="flex-container" id="grid-${habit.id}">`;
+
+                const monthsToRender = datesByMonth.filter(group => {
+                    if (group.monthKey === currentMonthKey) return true;
+
+                    return group.dates.some(dateStr => {
+                        const record = appData.records[dateStr];
+                        if (!record) return false;
+                        const val = record[habit.id];
+                        return val === 'full' || val === 'partial' || val === 'none';
+                    });
+                });
+
+                monthsToRender.forEach(group => {
+                    html += `<div class="w-full text-[9px] font-black text-slate-300 dark:text-slate-500 mt-2 mb-1 uppercase tracking-widest">${group.monthName}</div>`;
+                    
+                    const sortedDates = [...group.dates].reverse();
+                    
+                    sortedDates.forEach(dateStr => {
+                        const record = appData.records[dateStr] || {};
+                        const val = record[habit.id];
+                        const note = record[habit.id + '_note'];
+                        const isFrozen = window.globalFrozenDays.has(dateStr);
+                        
+                        let cellClass = "bg-slate-100 dark:bg-slate-700";
+                        let humanStatus = "Pending";
+                        let innerDotHtml = '';
+
+                        if (isFrozen) {
+                            cellClass = "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"; humanStatus = "Frozen (Protected)";
+                        } else if (val === 'full') {
+                            cellClass = "bg-brand-green"; humanStatus = "Full"; 
+                        } else if (val === 'partial') {
+                            cellClass = "bg-brand-yellow"; humanStatus = "Min"; 
+                        } else if (val === 'none') {
+                            cellClass = "bg-brand-red opacity-60"; humanStatus = "Rest"; 
+                        } else if (!val && dateStr < appData.startDate) {
+                            cellClass = "bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"; humanStatus = "Before Start";
+                        } else if (!val && dateStr < today) {
+                            cellClass = "bg-brand-red opacity-60"; humanStatus = "Missed";
+                        }
+
+                        if (note) {
+                            innerDotHtml = `<div class="w-1.5 h-1.5 bg-white/90 rounded-full mx-auto mt-1"></div>`;
+                            humanStatus += ` | Note: "${note}"`;
+                        }
+
+                        const [y, m, d] = dateStr.split('-');
+                        const displayDateObj = new Date(y, parseInt(m)-1, d);
+                        const displayDate = displayDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        
+                        html += `<div title="${displayDate} - ${humanStatus}" 
+                                      class="grid-cell transition-colors duration-200 ${cellClass}" 
+                                      onclick="openEditModal('${dateStr}')">${innerDotHtml}</div>`;
+                    });
+                });
+
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCurrentDateDisplay();
+            updateCircadianTheme();
+            initFirebase(); 
+            
+            setInterval(() => {
+                if(appData && appData.records && currentUser) updateUI();
+            }, 60000); 
+        });
+
+    </script>
+</body>
+</html>
