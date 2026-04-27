@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Procurement Engine</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        /* Custom scrollbar for a premium feel */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Enforce absolute dimensions on containers to prevent Chart.js zero-height crashes */
+        .chart-wrapper { position: relative; width: 100%; height: 100%; min-height: 250px; }
+        @media (min-width: 1024px) { .chart-wrapper { min-height: 300px; } }
+        .chart-wrapper-large { position: relative; width: 100%; height: 100%; min-height: 320px; }
+        
+        .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30 overflow-x-hidden min-h-screen p-3 sm:p-4 md:p-6">
+
+    <!-- Header & Navigation -->
+    <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                Dynamic Procurement Engine
+            </h1>
+            <p class="text-slate-400 text-xs sm:text-sm mt-1 ml-11">Mobile-Optimized Intelligence Dashboard</p>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row w-full xl:w-auto bg-slate-900 p-1 rounded-lg border border-slate-800 gap-1">
+            <button onclick="switchTab('multi-year')" id="btn-multi-year" class="tab-btn px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 text-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                Master View
+            </button>
+            <button onclick="switchTab('single')" id="btn-single" class="tab-btn px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-slate-400 hover:text-white hover:bg-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                Interrogation
+            </button>
+            <button onclick="switchTab('current')" id="btn-current" class="tab-btn px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-slate-400 hover:text-white hover:bg-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                Current Year
+            </button>
+        </div>
+    </header>
+
+    <!-- PATH 0: MULTI-YEAR MASTER VIEW -->
+    <div id="tab-multi-year" class="tab-content active">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl lg:col-span-2 shadow-lg flex flex-col">
+                <h3 class="text-base sm:text-lg font-bold text-white mb-4">6-Year Spend Trajectory (Crores)</h3>
+                <div class="chart-wrapper-large flex-grow"><canvas id="chartMasterArea"></canvas></div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl shadow-lg flex flex-col">
+                <h3 class="text-base sm:text-lg font-bold text-white mb-4">All-Time Dependency %</h3>
+                <div class="chart-wrapper-large flex-grow"><canvas id="chartMasterPie"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATH 1: SINGLE VENDOR INTERROGATION -->
+    <div id="tab-single" class="tab-content">
+        <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6">
+            <!-- Controls -->
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-xl lg:w-1/3 shadow-lg">
+                <label class="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-widest mb-2 block">Target Profile</label>
+                <select id="vendorSelect" onchange="updateVendorInterrogation()" class="w-full bg-slate-950 border border-slate-700 text-white text-lg sm:text-xl font-bold rounded-lg p-2.5 sm:p-3 focus:outline-none focus:border-blue-500 cursor-pointer">
+                    <option value="AlMadina">Al Madina</option>
+                    <option value="RLF">RLF</option>
+                    <option value="AYUSH">AYUSH</option>
+                    <option value="JAMALI">JAMALI</option>
+                </select>
+                <div class="mt-4 pt-4 border-t border-slate-800 text-sm leading-relaxed text-slate-300">
+                    <strong class="text-blue-400 block mb-1">Audit Insight:</strong> 
+                    <span id="insightText"></span>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:w-2/3">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-center">
+                    <span class="text-slate-400 text-[10px] sm:text-xs font-bold uppercase truncate">Total 25-26 Spend</span>
+                    <span id="kpiSpend" class="text-2xl sm:text-3xl font-bold text-white mt-1">0 L</span>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-center">
+                    <span class="text-slate-400 text-[10px] sm:text-xs font-bold uppercase truncate">Current Wallet Share</span>
+                    <span id="kpiShare" class="text-2xl sm:text-3xl font-bold mt-1">0%</span>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-center col-span-2 lg:col-span-1">
+                    <span class="text-slate-400 text-[10px] sm:text-xs font-bold uppercase">1-Yr Velocity</span>
+                    <div class="flex items-center gap-1 mt-1">
+                        <svg id="kpiVelocityIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></svg>
+                        <span id="kpiVelocityText" class="text-2xl sm:text-3xl font-black">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EPIC ROW 1: Overlap & Combo Trends -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-2 text-xs sm:text-sm uppercase tracking-wide">1. Clear 4-Year Seasonality Overlap</h3>
+                <p class="text-xs text-slate-400 mb-4">Faded lines = old history. Dotted = last year. Thick = Current.</p>
+                <div class="chart-wrapper-large flex-grow"><canvas id="chartYoYOverlap"></canvas></div>
+            </div>
+            
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-2 text-xs sm:text-sm uppercase tracking-wide">2. 6-Year Absolute Volume Trend</h3>
+                <p class="text-xs text-slate-400 mb-4">Combo Bar + Line to clearly track historical scale (Lakhs).</p>
+                <div class="chart-wrapper-large flex-grow"><canvas id="chartComboVolume"></canvas></div>
+            </div>
+        </div>
+
+        <h2 class="text-lg sm:text-xl font-bold text-slate-300 mt-8 mb-4 border-b border-slate-800 pb-2">Mind-Blowing Hidden Patterns</h2>
+        
+        <!-- ROW 2: The Deep Analytics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+            
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-2 text-[10px] sm:text-xs uppercase tracking-wide">3. Cumulative Bleed (YTD Pacing)</h3>
+                <p class="text-[10px] text-slate-400 mb-2">Are we spending faster this year than we were last year?</p>
+                <div class="chart-wrapper flex-grow"><canvas id="chartCumulativePacing"></canvas></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-2 text-[10px] sm:text-xs uppercase tracking-wide">4. The Anomaly Matrix</h3>
+                <p class="text-[10px] text-slate-400 mb-2">Every invoice mapped. Big bubbles = massive abnormal spikes.</p>
+                <div class="chart-wrapper flex-grow"><canvas id="chartBubbleMap"></canvas></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-2 text-[10px] sm:text-xs uppercase tracking-wide">5. H1 vs H2 Budget Dumping</h3>
+                <p class="text-[10px] text-slate-400 mb-2">Do they squeeze us at the end of the financial year (Oct-Mar)?</p>
+                <div class="chart-wrapper flex-grow"><canvas id="chartH1H2"></canvas></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-2 text-[10px] sm:text-xs uppercase tracking-wide">6. 24-Month True Momentum</h3>
+                <p class="text-[10px] text-slate-400 mb-2">3-Month Trailing Average to reveal the hidden underlying trend.</p>
+                <div class="chart-wrapper flex-grow"><canvas id="chartMomentum"></canvas></div>
+            </div>
+            
+        </div>
+
+        <!-- ROW 3: Secondary Context -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col items-center">
+                <h3 class="text-white font-semibold mb-0 w-full text-[10px] sm:text-xs uppercase tracking-wide">Seasonality Signature</h3>
+                <div class="chart-wrapper flex-grow"><canvas id="chartRadar"></canvas></div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-4 text-[10px] sm:text-xs uppercase tracking-wide">Current Qtr Drain</h3>
+                <div class="chart-wrapper flex-grow"><canvas id="chartQuarterPie"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATH 2: CURRENT YEAR LANDSCAPE -->
+    <div id="tab-current" class="tab-content">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6">
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl flex flex-col justify-center col-span-2 md:col-span-1">
+                <span class="text-slate-400 text-[10px] sm:text-sm font-bold uppercase">Total Spend (25-26)</span>
+                <span id="currTotalSpend" class="text-2xl sm:text-3xl font-bold text-white mt-1">₹0 <span class="text-sm text-slate-500 font-normal">CR</span></span>
+            </div>
+            <div id="currLeaderBorder" class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl flex flex-col justify-center border-l-4">
+                <span class="text-slate-400 text-[10px] sm:text-sm font-bold uppercase truncate">Market Leader</span>
+                <span id="currLeader" class="text-lg sm:text-2xl font-bold text-white mt-1">-</span>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl flex flex-col justify-center border-l-4 border-l-red-500">
+                <span class="text-slate-400 text-[10px] sm:text-sm font-bold uppercase truncate">Highest Growth</span>
+                <span class="text-lg sm:text-2xl font-bold text-white mt-1">RLF (+110%)</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-4 text-[10px] sm:text-xs uppercase tracking-wide">Yearly Leaderboard</h3>
+                <div class="chart-wrapper-large flex-grow"><canvas id="chartLeaderboard"></canvas></div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-xl lg:col-span-2 shadow-lg flex flex-col">
+                <h3 class="text-white font-semibold mb-4 text-[10px] sm:text-xs uppercase tracking-wide">Monthly Spend Race (Lakhs)</h3>
+                <div class="chart-wrapper-large flex-grow"><canvas id="chartRace"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic & Data -->
+    <script>
+        // Store global chart instances so we can destroy them before redrawing
+        let charts = {};
+
+        // Data Definitions
+        const years = ['2020-21', '2021-22', '2022-23', '2023-24', '2024-25', '2025-26'];
+        const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+        
+        const vendorMeta = {
+            AlMadina: { name: 'Al Madina', color: '#3b82f6', lastTotal: 283, currTotal: 378 },
+            RLF: { name: 'RLF', color: '#10b981', lastTotal: 215, currTotal: 452 },
+            AYUSH: { name: 'AYUSH', color: '#f59e0b', lastTotal: 182, currTotal: 227 },
+            JAMALI: { name: 'JAMALI', color: '#ef4444', lastTotal: 79, currTotal: 77 }
+        };
+
+        const yearlyTotals = {
+            AlMadina: [285, 290, 281, 309, 283, 378], // Converted to Lakhs for consistency in combo chart
+            RLF: [57, 87, 125, 149, 215, 452],
+            AYUSH: [57, 112, 131, 169, 182, 227],
+            JAMALI: [51, 38, 29, 66, 79, 77]
+        };
+
+        // Complete month-by-month data (Lakhs)
+        const timeSeries = {
+            '2020-21': {
+                AlMadina: [0, 0, 12.86, 13.73, 13.29, 21.38, 20.15, 32.04, 39.38, 47.34, 32.04, 52.38],
+                RLF: [0, 0, 1.78, 2.27, 1.98, 3.57, 2.16, 3.04, 10.20, 4.86, 9.88, 17.67],
+                AYUSH: [0, 0, 1.63, 4.63, 2.06, 2.87, 2.85, 5.52, 5.47, 7.70, 13.92, 10.11],
+                JAMALI: [0, 0, 2.46, 4.69, 1.90, 2.82, 3.98, 2.24, 4.45, 7.08, 8.64, 12.84]
+            },
+            '2021-22': {
+                AlMadina: [36.75, 7.81, 13.66, 17.98, 12.25, 12.10, 14.42, 30.76, 25.42, 44.09, 24.99, 49.33],
+                RLF: [13.23, 2.31, 6.35, 4.86, 6.05, 4.28, 3.65, 4.35, 10.42, 1.00, 9.57, 20.69],
+                AYUSH: [6.96, 2.87, 6.46, 15.94, 3.08, 0.66, 6.74, 7.48, 13.27, 15.43, 16.32, 17.16],
+                JAMALI: [5.49, 0, 6.29, 4.68, 0.70, 1.96, 1.39, 4.05, 0.91, 1.95, 5.27, 5.30]
+            },
+            '2022-23': {
+                AlMadina: [29.19, 14.50, 22.17, 9.14, 4.54, 23.97, 11.97, 31.83, 18.41, 27.17, 38.43, 49.80],
+                RLF: [13.76, 3.45, 9.63, 2.45, 5.51, 7.68, 5.24, 6.06, 7.39, 13.62, 22.95, 27.47],
+                AYUSH: [18.64, 10.40, 7.83, 3.62, 3.68, 5.45, 4.20, 7.88, 10.41, 14.13, 16.98, 27.38],
+                JAMALI: [1.24, 4.15, 1.05, 3.40, 0.18, 0, 1.72, 1.85, 0.54, 0.61, 6.81, 7.31]
+            },
+            '2023-24': {
+                AlMadina: [30.31, 25.02, 18.24, 9.78, 10.47, 17.82, 24.90, 19.35, 21.65, 37.26, 54.20, 40.42],
+                RLF: [17.26, 5.36, 6.62, 5.49, 9.46, 10.89, 9.87, 5.32, 12.04, 14.16, 27.85, 25.01],
+                AYUSH: [16.75, 13.08, 7.06, 4.01, 7.74, 5.49, 13.63, 14.39, 18.10, 27.11, 23.22, 18.19],
+                JAMALI: [7.97, 4.71, 2.35, 1.63, 4.65, 2.07, 3.99, 3.84, 3.91, 4.84, 12.62, 13.86]
+            },
+            '2024-25': {
+                AlMadina: [16.99, 15.57, 4.82, 3.04, 10.16, 16.44, 24.60, 29.00, 41.83, 42.50, 43.13, 34.90],
+                RLF: [12.22, 8.27, 5.89, 10.34, 5.84, 9.40, 8.72, 7.78, 31.60, 34.97, 49.89, 29.85],
+                AYUSH: [0.90, 13.56, 5.28, 9.38, 9.01, 8.52, 10.12, 22.08, 23.37, 35.75, 26.71, 17.28],
+                JAMALI: [3.86, 3.71, 2.38, 1.10, 5.74, 2.13, 3.20, 5.63, 9.54, 12.01, 15.53, 14.24]
+            },
+            '2025-26': {
+                AlMadina: [32.91, 14.11, 4.40, 12.58, 16.84, 27.52, 29.68, 43.60, 54.56, 59.51, 62.75, 19.59],
+                RLF: [18.46, 18.52, 10.86, 9.14, 12.06, 18.65, 16.80, 49.87, 55.59, 85.88, 95.31, 60.99],
+                AYUSH: [18.82, 12.00, 10.93, 8.78, 7.77, 18.14, 14.16, 19.99, 27.85, 30.52, 36.79, 21.12],
+                JAMALI: [9.35, 5.18, 2.75, 3.98, 2.61, 6.43, 6.75, 9.31, 13.17, 4.14, 8.24, 5.12]
+            }
+        };
+
+        // Standardized Chart Configurations
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.titleColor = '#fff';
+        Chart.defaults.plugins.tooltip.bodyColor = '#cbd5e1';
+        Chart.defaults.plugins.tooltip.borderColor = '#334155';
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        
+        const modernGrid = { color: '#334155', borderDash: [3, 3] };
+        const modernScales = {
+            x: { border: { display: false }, grid: { display: false } },
+            y: { border: { display: false }, grid: modernGrid }
+        };
+
+        // Turn off datalabels globally so they don't clutter line/bar charts
+        Chart.defaults.plugins.datalabels = { display: false };
+
+        // Main Tab Switch Controller
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-slate-400 hover:text-white hover:bg-slate-800';
+            });
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = 'tab-btn px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 text-white shadow-md';
+
+            // Delay for rendering constraints to be processed by browser
+            setTimeout(() => {
+                if (tabId === 'multi-year') renderMasterView();
+                if (tabId === 'single') updateVendorInterrogation();
+                if (tabId === 'current') renderCurrentYear();
+            }, 50);
+        }
+
+        function createOrUpdateChart(id, config) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), config);
+        }
+
+        // ==========================================
+        // RENDER: Master View
+        // ==========================================
+        function renderMasterView() {
+            createOrUpdateChart('chartMasterArea', {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        { label: 'Al Madina', data: yearlyTotals.AlMadina.map(v => v/100), borderColor: vendorMeta.AlMadina.color, backgroundColor: vendorMeta.AlMadina.color + '33', fill: true, tension: 0.4 },
+                        { label: 'RLF', data: yearlyTotals.RLF.map(v => v/100), borderColor: vendorMeta.RLF.color, backgroundColor: vendorMeta.RLF.color + '33', fill: true, tension: 0.4 },
+                        { label: 'AYUSH', data: yearlyTotals.AYUSH.map(v => v/100), borderColor: vendorMeta.AYUSH.color, fill: false, tension: 0.4 },
+                        { label: 'JAMALI', data: yearlyTotals.JAMALI.map(v => v/100), borderColor: vendorMeta.JAMALI.color, fill: false, tension: 0.4 }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: modernScales, 
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} CR` } } }
+                }
+            });
+
+            createOrUpdateChart('chartMasterPie', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Al Madina', 'RLF', 'AYUSH', 'JAMALI'],
+                    datasets: [{ data: [44.22, 26.28, 21.26, 8.24], backgroundColor: [vendorMeta.AlMadina.color, vendorMeta.RLF.color, vendorMeta.AYUSH.color, vendorMeta.JAMALI.color], borderWidth: 0 }]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    cutout: '70%', 
+                    plugins: { 
+                        datalabels: {
+                            display: true,
+                            color: '#fff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value) => Math.round(value) + '%'
+                        },
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}% Share` } }
+                    } 
+                }
+            });
+        }
+
+        // ==========================================
+        // RENDER: Single Vendor Interrogation (THE MEGA UPGRADE)
+        // ==========================================
+        function updateVendorInterrogation() {
+            const vendor = document.getElementById('vendorSelect').value;
+            const meta = vendorMeta[vendor];
+            
+            // 1. Core KPIs
+            let shares = [];
+            for (let i = 0; i < years.length; i++) {
+                let total = yearlyTotals.AlMadina[i] + yearlyTotals.RLF[i] + yearlyTotals.AYUSH[i] + yearlyTotals.JAMALI[i];
+                shares.push(((yearlyTotals[vendor][i] / total) * 100).toFixed(1));
+            }
+            const currentShare = shares[5];
+            const currentGrowth = (((meta.currTotal - meta.lastTotal) / meta.lastTotal) * 100).toFixed(1);
+
+            document.getElementById('kpiSpend').innerText = meta.currTotal + ' L';
+            document.getElementById('kpiShare').innerText = currentShare + '%';
+            document.getElementById('kpiShare').style.color = meta.color;
+            
+            const velocityIcon = document.getElementById('kpiVelocityIcon');
+            const velocityText = document.getElementById('kpiVelocityText');
+            if (currentGrowth > 0) {
+                velocityIcon.innerHTML = `<polyline points="17 7 2 22"/><polyline points="8 7 17 7 17 16"/>`;
+                velocityIcon.setAttribute('class', 'text-rose-500');
+                velocityText.className = "text-2xl sm:text-3xl font-black text-rose-500";
+                velocityText.innerText = '+' + currentGrowth + '%';
+            } else {
+                velocityIcon.innerHTML = `<polyline points="17 17 2 2"/><polyline points="8 17 17 17 17 8"/>`;
+                velocityIcon.setAttribute('class', 'text-emerald-500');
+                velocityText.className = "text-2xl sm:text-3xl font-black text-emerald-500";
+                velocityText.innerText = currentGrowth + '%';
+            }
+
+            document.getElementById('insightText').innerText = `In 25-26, ${meta.name} controls ${currentShare}% of the budget. Volume changed ${currentGrowth > 0 ? '+' : ''}${currentGrowth}% vs last year.`;
+
+            // 2. Chart 1: The Clean 4-Year Overlap (User requested fix)
+            // 2022-23 (Ghost), 2023-24 (Ghost), 2024-25 (Dotted), 2025-26 (Thick Solid)
+            const datasetsOverlap = [
+                { label: '2022-23', data: timeSeries['2022-23'][vendor], borderColor: '#334155', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+                { label: '2023-24', data: timeSeries['2023-24'][vendor], borderColor: '#475569', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+                { label: '2024-25 (Last Year)', data: timeSeries['2024-25'][vendor], borderColor: '#cbd5e1', borderDash: [4, 4], borderWidth: 2, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#cbd5e1' },
+                { label: '2025-26 (Current)', data: timeSeries['2025-26'][vendor], borderColor: meta.color, borderWidth: 4, tension: 0.4, pointRadius: 5, pointBackgroundColor: meta.color, pointBorderColor: '#fff' }
+            ];
+            createOrUpdateChart('chartYoYOverlap', {
+                type: 'line',
+                data: { labels: months, datasets: datasetsOverlap },
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: modernScales,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} L` } } }
+                }
+            });
+
+            // 3. Chart 2: Combo Bar + Line for Total Volume History
+            createOrUpdateChart('chartComboVolume', {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        { type: 'line', label: 'Trend Line', data: yearlyTotals[vendor], borderColor: '#fff', borderWidth: 3, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#fff', datalabels: { display: false } },
+                        { 
+                            type: 'bar', 
+                            label: 'Total Spend', 
+                            data: yearlyTotals[vendor], 
+                            backgroundColor: meta.color + 'CC', 
+                            borderRadius: 4,
+                            datalabels: {
+                                display: true,
+                                color: '#ffffff',
+                                font: { weight: 'bold', size: 12 },
+                                anchor: 'center',
+                                align: 'center',
+                                formatter: (value) => Math.round(value) + ' L'
+                            }
+                        }
+                    ]
+                },
+                options: { maintainAspectRatio: false, scales: modernScales, plugins: { legend: {display: false} } }
+            });
+
+            // 4. Chart 3: Cumulative Bleed (YTD Pacing)
+            let lastCum = 0; let currCum = 0;
+            const pacingLast = timeSeries['2024-25'][vendor].map(v => lastCum += v);
+            const pacingCurr = timeSeries['2025-26'][vendor].map(v => currCum += v);
+            createOrUpdateChart('chartCumulativePacing', {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        { label: 'Pacing Last Year', data: pacingLast, borderColor: '#64748b', backgroundColor: 'transparent', borderWidth: 2, tension: 0 },
+                        { label: 'Pacing Current Year', data: pacingCurr, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, borderWidth: 3, tension: 0 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, scales: modernScales, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } } }
+            });
+
+            // 5. Chart 4: The Anomaly Matrix (Bubble Map)
+            const bubbleData = [];
+            const maxVal = Math.max(...years.flatMap(y => timeSeries[y][vendor]));
+            years.forEach((yr, yIdx) => {
+                timeSeries[yr][vendor].forEach((val, mIdx) => {
+                    if(val > 0) {
+                        // Radius scales with value to pop anomalies
+                        bubbleData.push({ x: mIdx, y: yIdx, r: (val / maxVal) * 20 + 2, rawVal: val });
+                    }
+                });
+            });
+            createOrUpdateChart('chartBubbleMap', {
+                type: 'bubble',
+                data: {
+                    datasets: [{ label: 'Invoices', data: bubbleData, backgroundColor: meta.color + '99', borderColor: meta.color }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { border: {display: false}, grid: {display: false}, ticks: { callback: function(val, index) { return months[index]; } } },
+                        y: { border: {display: false}, grid: modernGrid, ticks: { callback: function(val, index) { return years[index]; }, stepSize: 1 } }
+                    },
+                    plugins: { 
+                        legend: {display: false},
+                        tooltip: { callbacks: { label: (ctx) => `${months[ctx.raw.x]} ${years[ctx.raw.y]}: ${ctx.raw.rawVal} L` } }
+                    }
+                }
+            });
+
+            // 6. Chart 5: H1 vs H2 Dumping (Stacked Bar)
+            const h1Data = years.map(y => timeSeries[y][vendor].slice(0,6).reduce((a,b)=>a+b,0));
+            const h2Data = years.map(y => timeSeries[y][vendor].slice(6,12).reduce((a,b)=>a+b,0));
+            createOrUpdateChart('chartH1H2', {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        { label: 'H1 (Apr-Sep)', data: h1Data, backgroundColor: '#334155' },
+                        { label: 'H2 (Oct-Mar)', data: h2Data, backgroundColor: meta.color }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: { x: { stacked: true, grid: {display: false} }, y: { stacked: true, grid: modernGrid } },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }
+                }
+            });
+
+            // 7. Chart 6: 24-Month True Momentum (3-Month Trailing Avg)
+            const last24Raw = [...timeSeries['2024-25'][vendor], ...timeSeries['2025-26'][vendor]];
+            const last24Labels = [...months.map(m=>m+' 24'), ...months.map(m=>m+' 25')];
+            const movingAvg = [];
+            for(let i=0; i<last24Raw.length; i++) {
+                if(i < 2) { movingAvg.push(null); continue; }
+                movingAvg.push((last24Raw[i] + last24Raw[i-1] + last24Raw[i-2]) / 3);
+            }
+            createOrUpdateChart('chartMomentum', {
+                type: 'line',
+                data: {
+                    labels: last24Labels,
+                    datasets: [
+                        { label: 'Raw Spikes', data: last24Raw, borderColor: '#334155', borderWidth: 1, tension: 0.2 },
+                        { label: '3-Mo Underlying Momentum', data: movingAvg, borderColor: '#f59e0b', borderWidth: 3, tension: 0.4, pointRadius: 0 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, scales: modernScales, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } } }
+            });
+
+            // 8. Chart 7: Seasonality Radar (Current Year)
+            createOrUpdateChart('chartRadar', {
+                type: 'radar',
+                data: { 
+                    labels: months, 
+                    datasets: [{ label: '25-26 Seasonality', data: timeSeries['2025-26'][vendor], borderColor: meta.color, backgroundColor: meta.color + '66', fill: true }] 
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: { r: { grid: { color: '#334155' }, angleLines: { color: '#334155' }, ticks: { display: false } } },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.raw} Lakhs` } } }
+                }
+            });
+
+            // 9. Chart 8: Current Qtr Drain (Pie)
+            const currY = timeSeries['2025-26'][vendor];
+            const qData = [ currY[0]+currY[1]+currY[2], currY[3]+currY[4]+currY[5], currY[6]+currY[7]+currY[8], currY[9]+currY[10]+currY[11] ];
+            createOrUpdateChart('chartQuarterPie', {
+                type: 'pie',
+                data: { 
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'], 
+                    datasets: [{ data: qData.map(v => v.toFixed(2)), backgroundColor: ['#1e293b', '#334155', '#475569', meta.color], borderWidth: 0 }] 
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        datalabels: {
+                            display: true,
+                            color: '#fff',
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (value) => Math.round(value) + 'L'
+                        },
+                        legend: { position: 'right', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } },
+                        tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} L` } }
+                    } 
+                }
+            });
+        }
+
+        // ==========================================
+        // RENDER: Current Year Landscape
+        // ==========================================
+        function renderCurrentYear() {
+            const t = { AlMadina: vendorMeta.AlMadina.currTotal, RLF: vendorMeta.RLF.currTotal, AYUSH: vendorMeta.AYUSH.currTotal, JAMALI: vendorMeta.JAMALI.currTotal };
+            const sortedVendors = Object.keys(t).map(k => ({ name: vendorMeta[k].name, val: t[k], col: vendorMeta[k].color })).sort((a,b) => b.val - a.val);
+            const totalCurr = (t.AlMadina + t.RLF + t.AYUSH + t.JAMALI) / 100;
+
+            document.getElementById('currTotalSpend').innerHTML = `₹${totalCurr.toFixed(2)} <span class="text-sm text-slate-500 font-normal">CR</span>`;
+            document.getElementById('currLeader').innerText = sortedVendors[0].name;
+            document.getElementById('currLeaderBorder').style.borderLeftColor = sortedVendors[0].col;
+
+            createOrUpdateChart('chartLeaderboard', {
+                type: 'bar',
+                data: { labels: sortedVendors.map(v=>v.name), datasets: [{ label: 'Total Lakhs', data: sortedVendors.map(v=>v.val), backgroundColor: sortedVendors.map(v=>v.col), borderRadius: 4 }] },
+                options: { 
+                    maintainAspectRatio: false, 
+                    indexAxis: 'y', 
+                    scales: { x: { border: {display: false}, grid: modernGrid }, y: { border: {display: false}, grid: {display: false} } }, 
+                    plugins: { legend: {display: false} } 
+                }
+            });
+
+            createOrUpdateChart('chartRace', {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        { label: 'RLF', data: timeSeries['2025-26'].RLF, borderColor: vendorMeta.RLF.color, tension: 0.3, borderWidth: 3 },
+                        { label: 'Al Madina', data: timeSeries['2025-26'].AlMadina, borderColor: vendorMeta.AlMadina.color, tension: 0.3, borderWidth: 3 },
+                        { label: 'AYUSH', data: timeSeries['2025-26'].AYUSH, borderColor: vendorMeta.AYUSH.color, tension: 0.3, borderWidth: 3 },
+                        { label: 'JAMALI', data: timeSeries['2025-26'].JAMALI, borderColor: vendorMeta.JAMALI.color, tension: 0.3, borderWidth: 3 }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: modernScales, 
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} L` } } }
+                }
+            });
+        }
+
+        // Initialize first tab safely when DOM is fully loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            switchTab('multi-year');
+        });
+    </script>
+</body>
+</html>
